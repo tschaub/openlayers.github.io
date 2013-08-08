@@ -524,13 +524,14 @@ goog.addDependency("../build/src/internal/src/requireall.js", [], ["ol", "ol.Att
 "ol.parser.GPX", "ol.parser.GeoJSON", "ol.parser.KML", "ol.parser.ObjectFeatureParser", "ol.parser.Parser", "ol.parser.ReadFeaturesOptions", "ol.parser.StringFeatureParser", "ol.parser.TopoJSON", "ol.parser.WKT", "ol.parser.XML", "ol.parser.ogc.ExceptionReport", "ol.parser.ogc.GML", "ol.parser.ogc.GML_v2", "ol.parser.ogc.GML_v3", "ol.parser.ogc.OWSCommon_v1", "ol.parser.ogc.OWSCommon_v1_1_0", "ol.parser.ogc.Versioned", "ol.parser.ogc.WMSCapabilities", "ol.parser.ogc.WMSCapabilities_v1", "ol.parser.ogc.WMSCapabilities_v1_0_0", 
 "ol.parser.ogc.WMSCapabilities_v1_1", "ol.parser.ogc.WMSCapabilities_v1_1_0", "ol.parser.ogc.WMSCapabilities_v1_1_1", "ol.parser.ogc.WMSCapabilities_v1_1_1_WMSC", "ol.parser.ogc.WMSCapabilities_v1_3_0", "ol.parser.ogc.WMTSCapabilities", "ol.parser.ogc.WMTSCapabilities_v1_0_0", "ol.parser.polyline", "ol.proj", "ol.proj.CH", "ol.proj.EPSG2056", "ol.proj.EPSG21781", "ol.proj.EPSG3857", "ol.proj.EPSG4326", "ol.proj.addCommonProjections", "ol.renderer.Layer", "ol.renderer.Map", "ol.renderer.canvas.ImageLayer", 
 "ol.renderer.canvas.Layer", "ol.renderer.canvas.Map", "ol.renderer.canvas.SUPPORTED", "ol.renderer.canvas.TileLayer", "ol.renderer.canvas.VectorLayer", "ol.renderer.canvas.VectorRenderer", "ol.renderer.dom.ImageLayer", "ol.renderer.dom.Layer", "ol.renderer.dom.Map", "ol.renderer.dom.SUPPORTED", "ol.renderer.dom.TileLayer", "ol.renderer.webgl.ImageLayer", "ol.renderer.webgl.Layer", "ol.renderer.webgl.Map", "ol.renderer.webgl.SUPPORTED", "ol.renderer.webgl.TileLayer", "ol.renderer.webgl.VectorLayer2", 
-"ol.renderer.webgl.map.shader.Color", "ol.renderer.webgl.map.shader.Default", "ol.renderer.webgl.tilelayer.shader", "ol.renderer.webgl.vectorlayer2.shader.LineStringCollection", "ol.renderer.webgl.vectorlayer2.shader.PointCollection", "ol.size", "ol.source.BingMaps", "ol.source.DebugTileSource", "ol.source.ImageSource", "ol.source.ImageTileSource", "ol.source.MapQuestOSM", "ol.source.MapQuestOpenAerial", "ol.source.OSM", "ol.source.SingleImageWMS", "ol.source.Source", "ol.source.Stamen", "ol.source.StaticImage", 
-"ol.source.TileJSON", "ol.source.TileSource", "ol.source.TileSourceOptions", "ol.source.TiledWMS", "ol.source.Vector", "ol.source.VectorSource2", "ol.source.WMTS", "ol.source.WMTSRequestEncoding", "ol.source.XYZ", "ol.source.XYZOptions", "ol.source.wms", "ol.sphere.NORMAL", "ol.sphere.WGS84", "ol.structs.Buffer", "ol.structs.IntegerSet", "ol.structs.LRUCache", "ol.structs.PriorityQueue", "ol.structs.RTree", "ol.style.Icon", "ol.style.IconLiteral", "ol.style.IconType", "ol.style.Line", "ol.style.LineLiteral", 
-"ol.style.Point", "ol.style.PointLiteral", "ol.style.Polygon", "ol.style.PolygonLiteral", "ol.style.Rule", "ol.style.Shape", "ol.style.ShapeLiteral", "ol.style.ShapeType", "ol.style.Style", "ol.style.Symbolizer", "ol.style.SymbolizerLiteral", "ol.style.Text", "ol.style.TextLiteral", "ol.tilegrid.TileGrid", "ol.tilegrid.WMTS", "ol.tilegrid.XYZ", "ol.tilejson", "ol.vec.Mat4", "ol.webgl", "ol.webgl.WebGLContextEventType", "ol.webgl.shader"]);
+"ol.renderer.webgl.map.shader.Color", "ol.renderer.webgl.map.shader.Default", "ol.renderer.webgl.tilelayer.shader", "ol.renderer.webgl.vectorlayer2.shader.LineStringCollection", "ol.renderer.webgl.vectorlayer2.shader.PointCollection", "ol.size", "ol.source.BingMaps", "ol.source.DebugTileSource", "ol.source.FeatureInfoSource", "ol.source.ImageSource", "ol.source.ImageTileSource", "ol.source.MapQuestOSM", "ol.source.MapQuestOpenAerial", "ol.source.OSM", "ol.source.SingleImageWMS", "ol.source.Source", 
+"ol.source.Stamen", "ol.source.StaticImage", "ol.source.TileJSON", "ol.source.TileSource", "ol.source.TileSourceOptions", "ol.source.TiledWMS", "ol.source.Vector", "ol.source.VectorSource2", "ol.source.WMSGetFeatureInfoMethod", "ol.source.WMTS", "ol.source.WMTSRequestEncoding", "ol.source.XYZ", "ol.source.XYZOptions", "ol.source.wms", "ol.sphere.NORMAL", "ol.sphere.WGS84", "ol.structs.Buffer", "ol.structs.IntegerSet", "ol.structs.LRUCache", "ol.structs.PriorityQueue", "ol.structs.RTree", "ol.style.Icon", 
+"ol.style.IconLiteral", "ol.style.IconType", "ol.style.Line", "ol.style.LineLiteral", "ol.style.Point", "ol.style.PointLiteral", "ol.style.Polygon", "ol.style.PolygonLiteral", "ol.style.Rule", "ol.style.Shape", "ol.style.ShapeLiteral", "ol.style.ShapeType", "ol.style.Style", "ol.style.Symbolizer", "ol.style.SymbolizerLiteral", "ol.style.Text", "ol.style.TextLiteral", "ol.tilegrid.TileGrid", "ol.tilegrid.WMTS", "ol.tilegrid.XYZ", "ol.tilejson", "ol.vec.Mat4", "ol.webgl", "ol.webgl.WebGLContextEventType", 
+"ol.webgl.shader"]);
 goog.addDependency("../build/src/internal/src/types.js", ["ol.DeviceOrientationOptions", "ol.GeolocationOptions", "ol.GetFeatureInfoOptions", "ol.GetFeaturesOptions", "ol.MapOptions", "ol.OverlayOptions", "ol.Proj4jsProjectionOptions", "ol.ProjectionOptions", "ol.View2DOptions", "ol.animation.BounceOptions", "ol.animation.PanOptions", "ol.animation.RotateOptions", "ol.animation.ZoomOptions", "ol.control.AttributionOptions", "ol.control.ControlOptions", "ol.control.DefaultsOptions", "ol.control.FullScreenOptions", 
 "ol.control.LogoOptions", "ol.control.MousePositionOptions", "ol.control.ScaleLineOptions", "ol.control.ZoomOptions", "ol.control.ZoomSliderOptions", "ol.control.ZoomToExtentOptions", "ol.interaction.DefaultsOptions", "ol.interaction.DoubleClickZoomOptions", "ol.interaction.DragPanOptions", "ol.interaction.DragRotateAndZoomOptions", "ol.interaction.DragRotateOptions", "ol.interaction.DragZoomOptions", "ol.interaction.KeyboardPanOptions", "ol.interaction.KeyboardZoomOptions", "ol.interaction.TouchPanOptions", 
 "ol.interaction.TouchRotateOptions", "ol.layer.LayerOptions", "ol.layer.TileLayerOptions", "ol.layer.VectorLayerOptions", "ol.parser.GMLOptions", "ol.parser.GMLReadOptions", "ol.parser.GMLWriteOptions", "ol.parser.GPXOptions", "ol.parser.GPXWriteOptions", "ol.parser.KMLOptions", "ol.source.BingMapsOptions", "ol.source.DebugTileSourceOptions", "ol.source.OSMOptions", "ol.source.SingleImageWMSOptions", "ol.source.SourceOptions", "ol.source.StamenOptions", "ol.source.StaticImageOptions", "ol.source.TileJSONOptions", 
-"ol.source.TiledWMSOptions", "ol.source.VectorOptions", "ol.source.VectorSource2Options", "ol.source.WMTSOptions", "ol.style.IconOptions", "ol.style.LineOptions", "ol.style.PolygonOptions", "ol.style.RuleOptions", "ol.style.ShapeOptions", "ol.style.StyleOptions", "ol.style.TextOptions", "ol.tilegrid.TileGridOptions", "ol.tilegrid.WMTSOptions", "ol.tilegrid.XYZOptions"], []);
+"ol.source.TiledWMSOptions", "ol.source.VectorOptions", "ol.source.VectorSource2Options", "ol.source.WMSGetFeatureInfoOptions", "ol.source.WMTSOptions", "ol.style.IconOptions", "ol.style.LineOptions", "ol.style.PolygonOptions", "ol.style.RuleOptions", "ol.style.ShapeOptions", "ol.style.StyleOptions", "ol.style.TextOptions", "ol.tilegrid.TileGridOptions", "ol.tilegrid.WMTSOptions", "ol.tilegrid.XYZOptions"], []);
 goog.addDependency("../src/ol/animation.js", ["ol.animation"], ["ol.PreRenderFunction", "ol.ViewHint", "ol.easing"]);
 goog.addDependency("../src/ol/array.js", ["ol.array"], ["goog.array", "goog.asserts"]);
 goog.addDependency("../src/ol/attribution.js", ["ol.Attribution"], ["ol.TileRange"]);
@@ -684,20 +685,21 @@ goog.addDependency("../src/ol/rotationconstraint.js", ["ol.RotationConstraint", 
 goog.addDependency("../src/ol/size.js", ["ol.Size", "ol.size"], []);
 goog.addDependency("../src/ol/source/bingmapssource.js", ["ol.source.BingMaps"], ["goog.Uri", "goog.array", "goog.asserts", "goog.net.Jsonp", "ol.Attribution", "ol.TileRange", "ol.TileUrlFunction", "ol.extent", "ol.proj", "ol.source.ImageTileSource", "ol.tilegrid.XYZ"]);
 goog.addDependency("../src/ol/source/debugtilesource.js", ["ol.source.DebugTileSource"], ["goog.dom", "goog.dom.TagName", "ol.Size", "ol.Tile", "ol.TileCache", "ol.TileCoord", "ol.TileState", "ol.source.TileSource", "ol.tilegrid.TileGrid"]);
+goog.addDependency("../src/ol/source/featureinfosource.js", ["ol.source.FeatureInfoSource"], []);
 goog.addDependency("../src/ol/source/imagesource.js", ["ol.source.ImageSource"], ["goog.array", "goog.asserts", "ol.Attribution", "ol.Extent", "ol.Image", "ol.ImageUrlFunction", "ol.ImageUrlFunctionType", "ol.Projection", "ol.Size", "ol.array", "ol.source.Source"]);
 goog.addDependency("../src/ol/source/imagetilesource.js", ["ol.source.ImageTileSource"], ["goog.asserts", "ol.Attribution", "ol.Extent", "ol.ImageTile", "ol.Projection", "ol.Tile", "ol.TileCache", "ol.TileCoord", "ol.TileState", "ol.TileUrlFunction", "ol.TileUrlFunctionType", "ol.source.TileSource", "ol.tilegrid.TileGrid"]);
 goog.addDependency("../src/ol/source/mapquestsource.js", ["ol.source.MapQuestOSM", "ol.source.MapQuestOpenAerial"], ["ol.Attribution", "ol.source.OSM", "ol.source.XYZ"]);
 goog.addDependency("../src/ol/source/osmsource.js", ["ol.source.OSM"], ["ol.Attribution", "ol.source.XYZ"]);
-goog.addDependency("../src/ol/source/singleimagewmssource.js", ["ol.source.SingleImageWMS"], ["ol.Image", "ol.ImageUrlFunction", "ol.extent", "ol.source.ImageSource", "ol.source.wms"]);
+goog.addDependency("../src/ol/source/singleimagewmssource.js", ["ol.source.SingleImageWMS"], ["goog.asserts", "ol.Image", "ol.ImageUrlFunction", "ol.extent", "ol.source.FeatureInfoSource", "ol.source.ImageSource", "ol.source.wms"]);
 goog.addDependency("../src/ol/source/source.js", ["ol.source.Source"], ["goog.events.EventTarget", "goog.events.EventType", "goog.functions", "ol.Attribution", "ol.Extent", "ol.proj"]);
 goog.addDependency("../src/ol/source/stamensource.js", ["ol.source.Stamen"], ["goog.asserts", "ol.Attribution", "ol.source.OSM", "ol.source.XYZ"]);
 goog.addDependency("../src/ol/source/staticimagesource.js", ["ol.source.StaticImage"], ["ol.Image", "ol.ImageUrlFunctionType", "ol.extent", "ol.proj", "ol.source.ImageSource"]);
-goog.addDependency("../src/ol/source/tiledwmssource.js", ["ol.source.TiledWMS"], ["goog.array", "goog.math", "ol.TileCoord", "ol.TileUrlFunction", "ol.extent", "ol.source.ImageTileSource", "ol.source.wms"]);
+goog.addDependency("../src/ol/source/tiledwmssource.js", ["ol.source.TiledWMS"], ["goog.array", "goog.asserts", "goog.math", "ol.TileCoord", "ol.TileUrlFunction", "ol.extent", "ol.source.FeatureInfoSource", "ol.source.ImageTileSource", "ol.source.wms"]);
 goog.addDependency("../src/ol/source/tilejsonsource.js", ["ol.source.TileJSON", "ol.tilejson"], ["goog.asserts", "goog.net.jsloader", "ol.Attribution", "ol.TileRange", "ol.TileUrlFunction", "ol.extent", "ol.proj", "ol.source.ImageTileSource", "ol.tilegrid.XYZ"]);
 goog.addDependency("../src/ol/source/tilesource.js", ["ol.source.TileSource", "ol.source.TileSourceOptions"], ["goog.functions", "ol.Attribution", "ol.Extent", "ol.Tile", "ol.TileCoord", "ol.TileRange", "ol.source.Source", "ol.tilegrid.TileGrid"]);
 goog.addDependency("../src/ol/source/vectorsource.js", ["ol.source.Vector"], ["goog.asserts", "goog.net.XhrIo", "ol.source.Source"]);
 goog.addDependency("../src/ol/source/vectorsource2.js", ["ol.source.VectorSource2"], ["ol.geom2.LineStringCollection", "ol.geom2.PointCollection", "ol.source.Source"]);
-goog.addDependency("../src/ol/source/wmssource.js", ["ol.source.wms"], ["goog.object", "goog.uri.utils"]);
+goog.addDependency("../src/ol/source/wmssource.js", ["ol.source.WMSGetFeatureInfoMethod", "ol.source.wms"], ["goog.net.XhrIo", "goog.object", "goog.uri.utils"]);
 goog.addDependency("../src/ol/source/wmtssource.js", ["ol.source.WMTS", "ol.source.WMTSRequestEncoding"], ["goog.array", "goog.asserts", "goog.math", "goog.object", "goog.uri.utils", "ol.TileCoord", "ol.TileUrlFunction", "ol.TileUrlFunctionType", "ol.extent", "ol.proj", "ol.source.ImageTileSource", "ol.tilegrid.WMTS"]);
 goog.addDependency("../src/ol/source/xyzsource.js", ["ol.source.XYZ", "ol.source.XYZOptions"], ["ol.Attribution", "ol.Projection", "ol.TileUrlFunction", "ol.TileUrlFunctionType", "ol.proj", "ol.source.ImageTileSource", "ol.tilegrid.XYZ"]);
 goog.addDependency("../src/ol/sphere/normal.js", ["ol.sphere.NORMAL"], ["ol.Sphere"]);
@@ -15976,6 +15978,16 @@ ol.renderer.Layer = function(mapRenderer, layer) {
   goog.events.listen(this.layer_, ol.Object.getChangeEventType(ol.layer.LayerProperty.VISIBLE), this.handleLayerVisibleChange, false, this)
 };
 goog.inherits(ol.renderer.Layer, goog.Disposable);
+ol.renderer.Layer.prototype.getFeatureInfoForPixel = function(pixel, success, opt_error) {
+  var layer = this.getLayer();
+  var source = layer.getSource();
+  if(goog.isFunction(source.getFeatureInfoForPixel)) {
+    var callback = function(layerFeatureInfo) {
+      success(layerFeatureInfo, layer)
+    };
+    source.getFeatureInfoForPixel(pixel, this.getMap(), callback, opt_error)
+  }
+};
 ol.renderer.Layer.prototype.getLayer = function() {
   return this.layer_
 };
@@ -19632,53 +19644,53 @@ ol.style.LineLiteral = function(options) {
   goog.base(this);
   goog.asserts.assertString(options.strokeColor, "strokeColor must be a string");
   this.strokeColor = options.strokeColor;
+  goog.asserts.assertNumber(options.strokeOpacity, "strokeOpacity must be a number");
+  this.strokeOpacity = options.strokeOpacity;
   goog.asserts.assertNumber(options.strokeWidth, "strokeWidth must be a number");
-  this.strokeWidth = options.strokeWidth;
-  goog.asserts.assertNumber(options.opacity, "opacity must be a number");
-  this.opacity = options.opacity
+  this.strokeWidth = options.strokeWidth
 };
 goog.inherits(ol.style.LineLiteral, ol.style.SymbolizerLiteral);
 ol.style.LineLiteral.prototype.equals = function(lineLiteral) {
-  return this.strokeColor == lineLiteral.strokeColor && this.strokeWidth == lineLiteral.strokeWidth && this.opacity == lineLiteral.opacity
+  return this.strokeColor == lineLiteral.strokeColor && this.strokeOpacity == lineLiteral.strokeOpacity && this.strokeWidth == lineLiteral.strokeWidth
 };
 ol.style.Line = function(options) {
   goog.base(this);
   this.strokeColor_ = !goog.isDef(options.strokeColor) ? new ol.expr.Literal(ol.style.LineDefaults.strokeColor) : options.strokeColor instanceof ol.expr.Expression ? options.strokeColor : new ol.expr.Literal(options.strokeColor);
-  this.strokeWidth_ = !goog.isDef(options.strokeWidth) ? new ol.expr.Literal(ol.style.LineDefaults.strokeWidth) : options.strokeWidth instanceof ol.expr.Expression ? options.strokeWidth : new ol.expr.Literal(options.strokeWidth);
-  this.opacity_ = !goog.isDef(options.opacity) ? new ol.expr.Literal(ol.style.LineDefaults.opacity) : options.opacity instanceof ol.expr.Expression ? options.opacity : new ol.expr.Literal(options.opacity)
+  this.strokeOpacity_ = !goog.isDef(options.strokeOpacity) ? new ol.expr.Literal(ol.style.LineDefaults.strokeOpacity) : options.strokeOpacity instanceof ol.expr.Expression ? options.strokeOpacity : new ol.expr.Literal(options.strokeOpacity);
+  this.strokeWidth_ = !goog.isDef(options.strokeWidth) ? new ol.expr.Literal(ol.style.LineDefaults.strokeWidth) : options.strokeWidth instanceof ol.expr.Expression ? options.strokeWidth : new ol.expr.Literal(options.strokeWidth)
 };
 goog.inherits(ol.style.Line, ol.style.Symbolizer);
 ol.style.Line.prototype.createLiteral = function(opt_feature) {
   var strokeColor = ol.expr.evaluateFeature(this.strokeColor_, opt_feature);
   goog.asserts.assertString(strokeColor, "strokeColor must be a string");
+  var strokeOpacity = ol.expr.evaluateFeature(this.strokeOpacity_, opt_feature);
+  goog.asserts.assertNumber(strokeOpacity, "strokeOpacity must be a number");
   var strokeWidth = ol.expr.evaluateFeature(this.strokeWidth_, opt_feature);
   goog.asserts.assertNumber(strokeWidth, "strokeWidth must be a number");
-  var opacity = ol.expr.evaluateFeature(this.opacity_, opt_feature);
-  goog.asserts.assertNumber(opacity, "opacity must be a number");
-  return new ol.style.LineLiteral({strokeColor:strokeColor, strokeWidth:strokeWidth, opacity:opacity})
+  return new ol.style.LineLiteral({strokeColor:strokeColor, strokeOpacity:strokeOpacity, strokeWidth:strokeWidth})
 };
 ol.style.Line.prototype.getStrokeColor = function() {
   return this.strokeColor_
 };
+ol.style.Line.prototype.getStrokeOpacity = function() {
+  return this.strokeOpacity_
+};
 ol.style.Line.prototype.getStrokeWidth = function() {
   return this.strokeWidth_
-};
-ol.style.Line.prototype.getOpacity = function() {
-  return this.opacity_
 };
 ol.style.Line.prototype.setStrokeColor = function(strokeColor) {
   goog.asserts.assertInstanceof(strokeColor, ol.expr.Expression);
   this.strokeColor_ = strokeColor
 };
+ol.style.Line.prototype.setStrokeOpacity = function(strokeOpacity) {
+  goog.asserts.assertInstanceof(strokeOpacity, ol.expr.Expression);
+  this.strokeOpacity_ = strokeOpacity
+};
 ol.style.Line.prototype.setStrokeWidth = function(strokeWidth) {
   goog.asserts.assertInstanceof(strokeWidth, ol.expr.Expression);
   this.strokeWidth_ = strokeWidth
 };
-ol.style.Line.prototype.setOpacity = function(opacity) {
-  goog.asserts.assertInstanceof(opacity, ol.expr.Expression);
-  this.opacity_ = opacity
-};
-ol.style.LineDefaults = new ol.style.LineLiteral({strokeColor:"#696969", strokeWidth:1.5, opacity:0.75});
+ol.style.LineDefaults = new ol.style.LineLiteral({strokeColor:"#696969", strokeOpacity:0.75, strokeWidth:1.5});
 goog.provide("ol.style.Polygon");
 goog.provide("ol.style.PolygonLiteral");
 goog.require("goog.asserts");
@@ -19694,31 +19706,58 @@ ol.style.PolygonLiteral = function(options) {
   if(goog.isDef(options.fillColor)) {
     goog.asserts.assertString(options.fillColor, "fillColor must be a string")
   }
+  this.fillOpacity = options.fillOpacity;
+  if(goog.isDef(options.fillOpacity)) {
+    goog.asserts.assertNumber(options.fillOpacity, "fillOpacity must be a number")
+  }
   this.strokeColor = options.strokeColor;
   if(goog.isDef(this.strokeColor)) {
     goog.asserts.assertString(this.strokeColor, "strokeColor must be a string")
+  }
+  this.strokeOpacity = options.strokeOpacity;
+  if(goog.isDef(this.strokeOpacity)) {
+    goog.asserts.assertNumber(this.strokeOpacity, "strokeOpacity must be a number")
   }
   this.strokeWidth = options.strokeWidth;
   if(goog.isDef(this.strokeWidth)) {
     goog.asserts.assertNumber(this.strokeWidth, "strokeWidth must be a number")
   }
-  goog.asserts.assert(goog.isDef(this.fillColor) || goog.isDef(this.strokeColor) && goog.isDef(this.strokeWidth), "Either fillColor or strokeColor and strokeWidth must be set");
-  goog.asserts.assertNumber(options.opacity, "opacity must be a number");
-  this.opacity = options.opacity
+  var fillDef = goog.isDef(this.fillColor) && goog.isDef(this.fillOpacity);
+  var strokeDef = goog.isDef(this.strokeColor) && goog.isDef(this.strokeOpacity) && goog.isDef(this.strokeWidth);
+  goog.asserts.assert(fillDef || strokeDef, "Either fillColor and fillOpacity or " + "strokeColor and strokeOpacity and strokeWidth must be set")
 };
 goog.inherits(ol.style.PolygonLiteral, ol.style.SymbolizerLiteral);
 ol.style.PolygonLiteral.prototype.equals = function(polygonLiteral) {
-  return this.fillColor == polygonLiteral.fillColor && this.strokeColor == polygonLiteral.strokeColor && this.strokeWidth == polygonLiteral.strokeWidth && this.opacity == polygonLiteral.opacity
+  return this.fillColor == polygonLiteral.fillColor && this.fillOpacity == polygonLiteral.fillOpacity && this.strokeColor == polygonLiteral.strokeColor && this.strokeOpacity == polygonLiteral.strokeOpacity && this.strokeWidth == polygonLiteral.strokeWidth
 };
 ol.style.Polygon = function(options) {
   goog.base(this);
-  this.fillColor_ = !goog.isDefAndNotNull(options.fillColor) ? null : options.fillColor instanceof ol.expr.Expression ? options.fillColor : new ol.expr.Literal(options.fillColor);
-  var strokeColor = null, strokeWidth = null;
-  if(goog.isDefAndNotNull(options.strokeColor) || goog.isDefAndNotNull(options.strokeWidth)) {
+  var fillColor = null, fillOpacity = null;
+  if(goog.isDefAndNotNull(options.fillColor) || goog.isDefAndNotNull(options.fillOpacity)) {
+    if(goog.isDefAndNotNull(options.fillColor)) {
+      fillColor = options.fillColor instanceof ol.expr.Expression ? options.fillColor : new ol.expr.Literal(options.fillColor)
+    }else {
+      fillColor = new ol.expr.Literal((ol.style.PolygonDefaults.fillColor))
+    }
+    if(goog.isDefAndNotNull(options.fillOpacity)) {
+      fillOpacity = options.fillOpacity instanceof ol.expr.Expression ? options.fillOpacity : new ol.expr.Literal(options.fillOpacity)
+    }else {
+      fillOpacity = new ol.expr.Literal((ol.style.PolygonDefaults.fillOpacity))
+    }
+  }
+  this.fillColor_ = fillColor;
+  this.fillOpacity_ = fillOpacity;
+  var strokeColor = null, strokeOpacity = null, strokeWidth = null;
+  if(goog.isDefAndNotNull(options.strokeColor) || goog.isDefAndNotNull(options.strokeOpacity) || goog.isDefAndNotNull(options.strokeWidth)) {
     if(goog.isDefAndNotNull(options.strokeColor)) {
       strokeColor = options.strokeColor instanceof ol.expr.Expression ? options.strokeColor : new ol.expr.Literal(options.strokeColor)
     }else {
       strokeColor = new ol.expr.Literal((ol.style.PolygonDefaults.strokeColor))
+    }
+    if(goog.isDefAndNotNull(options.strokeOpacity)) {
+      strokeOpacity = options.strokeOpacity instanceof ol.expr.Expression ? options.strokeOpacity : new ol.expr.Literal(options.strokeOpacity)
+    }else {
+      strokeOpacity = new ol.expr.Literal((ol.style.PolygonDefaults.strokeOpacity))
     }
     if(goog.isDefAndNotNull(options.strokeWidth)) {
       strokeWidth = options.strokeWidth instanceof ol.expr.Expression ? options.strokeWidth : new ol.expr.Literal(options.strokeWidth)
@@ -19727,9 +19766,11 @@ ol.style.Polygon = function(options) {
     }
   }
   this.strokeColor_ = strokeColor;
+  this.strokeOpacity_ = strokeOpacity;
   this.strokeWidth_ = strokeWidth;
-  goog.asserts.assert(!goog.isNull(this.fillColor_) || !(goog.isNull(this.strokeColor_) && goog.isNull(this.strokeWidth_)), "Stroke or fill properties must be provided");
-  this.opacity_ = !goog.isDef(options.opacity) ? new ol.expr.Literal(ol.style.PolygonDefaults.opacity) : options.opacity instanceof ol.expr.Expression ? options.opacity : new ol.expr.Literal(options.opacity)
+  var fill = !goog.isNull(this.fillColor_) && !goog.isNull(this.fillOpacity_);
+  var stroke = !goog.isNull(this.strokeColor_) && !goog.isNull(this.strokeOpacity_) && !goog.isNull(this.strokeWidth_);
+  goog.asserts.assert(fill || stroke, "Stroke or fill properties must be provided")
 };
 goog.inherits(ol.style.Polygon, ol.style.Symbolizer);
 ol.style.Polygon.prototype.createLiteral = function(opt_feature) {
@@ -19738,29 +19779,42 @@ ol.style.Polygon.prototype.createLiteral = function(opt_feature) {
     fillColor = ol.expr.evaluateFeature(this.fillColor_, opt_feature);
     goog.asserts.assertString(fillColor, "fillColor must be a string")
   }
+  var fillOpacity;
+  if(!goog.isNull(this.fillOpacity_)) {
+    fillOpacity = ol.expr.evaluateFeature(this.fillOpacity_, opt_feature);
+    goog.asserts.assertNumber(fillOpacity, "fillOpacity must be a number")
+  }
   var strokeColor;
   if(!goog.isNull(this.strokeColor_)) {
     strokeColor = ol.expr.evaluateFeature(this.strokeColor_, opt_feature);
     goog.asserts.assertString(strokeColor, "strokeColor must be a string")
+  }
+  var strokeOpacity;
+  if(!goog.isNull(this.strokeOpacity_)) {
+    strokeOpacity = ol.expr.evaluateFeature(this.strokeOpacity_, opt_feature);
+    goog.asserts.assertNumber(strokeOpacity, "strokeOpacity must be a number")
   }
   var strokeWidth;
   if(!goog.isNull(this.strokeWidth_)) {
     strokeWidth = ol.expr.evaluateFeature(this.strokeWidth_, opt_feature);
     goog.asserts.assertNumber(strokeWidth, "strokeWidth must be a number")
   }
-  goog.asserts.assert(goog.isDef(fillColor) || goog.isDef(strokeColor) && goog.isDef(strokeWidth), "either fillColor or strokeColor and strokeWidth must be defined");
-  var opacity = ol.expr.evaluateFeature(this.opacity_, opt_feature);
-  goog.asserts.assertNumber(opacity, "opacity must be a number");
-  return new ol.style.PolygonLiteral({fillColor:fillColor, strokeColor:strokeColor, strokeWidth:strokeWidth, opacity:opacity})
+  var fill = goog.isDef(fillColor) && goog.isDef(fillOpacity);
+  var stroke = goog.isDef(strokeColor) && goog.isDef(strokeOpacity) && goog.isDef(strokeWidth);
+  goog.asserts.assert(fill || stroke, "either fill or stroke properties must be defined");
+  return new ol.style.PolygonLiteral({fillColor:fillColor, fillOpacity:fillOpacity, strokeColor:strokeColor, strokeOpacity:strokeOpacity, strokeWidth:strokeWidth})
 };
 ol.style.Polygon.prototype.getFillColor = function() {
   return this.fillColor_
 };
-ol.style.Polygon.prototype.getOpacity = function() {
-  return this.opacity_
+ol.style.Polygon.prototype.getFillOpacity = function() {
+  return this.fillOpacity_
 };
 ol.style.Polygon.prototype.getStrokeColor = function() {
   return this.strokeColor_
+};
+ol.style.Polygon.prototype.getStrokeOpacity = function() {
+  return this.strokeOpacity_
 };
 ol.style.Polygon.prototype.getStrokeWidth = function() {
   return this.strokeWidth_
@@ -19769,19 +19823,23 @@ ol.style.Polygon.prototype.setFillColor = function(fillColor) {
   goog.asserts.assertInstanceof(fillColor, ol.expr.Expression);
   this.fillColor_ = fillColor
 };
-ol.style.Polygon.prototype.setOpacity = function(opacity) {
-  goog.asserts.assertInstanceof(opacity, ol.expr.Expression);
-  this.opacity_ = opacity
+ol.style.Polygon.prototype.setFillOpacity = function(fillOpacity) {
+  goog.asserts.assertInstanceof(fillOpacity, ol.expr.Expression);
+  this.fillOpacity_ = fillOpacity
 };
 ol.style.Polygon.prototype.setStrokeColor = function(strokeColor) {
   goog.asserts.assertInstanceof(strokeColor, ol.expr.Expression);
   this.strokeColor_ = strokeColor
 };
+ol.style.Polygon.prototype.setStrokeOpacity = function(strokeOpacity) {
+  goog.asserts.assertInstanceof(strokeOpacity, ol.expr.Expression);
+  this.strokeOpacity_ = strokeOpacity
+};
 ol.style.Polygon.prototype.setStrokeWidth = function(strokeWidth) {
   goog.asserts.assertInstanceof(strokeWidth, ol.expr.Expression);
   this.strokeWidth_ = strokeWidth
 };
-ol.style.PolygonDefaults = new ol.style.PolygonLiteral({fillColor:"#ffffff", strokeColor:"#696969", strokeWidth:1.5, opacity:0.75});
+ol.style.PolygonDefaults = new ol.style.PolygonLiteral({fillColor:"#ffffff", fillOpacity:0.4, strokeColor:"#696969", strokeOpacity:0.8, strokeWidth:1.5});
 goog.provide("ol.style.Shape");
 goog.provide("ol.style.ShapeLiteral");
 goog.provide("ol.style.ShapeType");
@@ -19802,32 +19860,59 @@ ol.style.ShapeLiteral = function(options) {
   if(goog.isDef(options.fillColor)) {
     goog.asserts.assertString(options.fillColor, "fillColor must be a string")
   }
+  this.fillOpacity = options.fillOpacity;
+  if(goog.isDef(options.fillOpacity)) {
+    goog.asserts.assertNumber(options.fillOpacity, "fillOpacity must be a number")
+  }
   this.strokeColor = options.strokeColor;
   if(goog.isDef(this.strokeColor)) {
     goog.asserts.assertString(this.strokeColor, "strokeColor must be a string")
+  }
+  this.strokeOpacity = options.strokeOpacity;
+  if(goog.isDef(this.strokeOpacity)) {
+    goog.asserts.assertNumber(this.strokeOpacity, "strokeOpacity must be a number")
   }
   this.strokeWidth = options.strokeWidth;
   if(goog.isDef(this.strokeWidth)) {
     goog.asserts.assertNumber(this.strokeWidth, "strokeWidth must be a number")
   }
-  goog.asserts.assert(goog.isDef(this.fillColor) || goog.isDef(this.strokeColor) && goog.isDef(this.strokeWidth), "Either fillColor or strokeColor and strokeWidth must be set");
-  goog.asserts.assertNumber(options.opacity, "opacity must be a number");
-  this.opacity = options.opacity
+  var fillDef = goog.isDef(this.fillColor) && goog.isDef(this.fillOpacity);
+  var strokeDef = goog.isDef(this.strokeColor) && goog.isDef(this.strokeOpacity) && goog.isDef(this.strokeWidth);
+  goog.asserts.assert(fillDef || strokeDef, "Either fillColor and fillOpacity or " + "strokeColor and strokeOpacity and strokeWidth must be set")
 };
 goog.inherits(ol.style.ShapeLiteral, ol.style.PointLiteral);
 ol.style.ShapeLiteral.prototype.equals = function(shapeLiteral) {
-  return this.type == shapeLiteral.type && this.size == shapeLiteral.size && this.fillColor == shapeLiteral.fillColor && this.strokeColor == shapeLiteral.strokeColor && this.strokeWidth == shapeLiteral.strokeWidth && this.opacity == shapeLiteral.opacity
+  return this.type == shapeLiteral.type && this.size == shapeLiteral.size && this.fillColor == shapeLiteral.fillColor && this.fillOpacity == shapeLiteral.fillOpacity && this.strokeColor == shapeLiteral.strokeColor && this.strokeOpacity == shapeLiteral.strokeOpacity && this.strokeWidth == shapeLiteral.strokeWidth
 };
 ol.style.Shape = function(options) {
   this.type_ = (goog.isDef(options.type) ? options.type : ol.style.ShapeDefaults.type);
-  this.size_ = !goog.isDef(options.size) ? new ol.expr.Literal(ol.style.ShapeDefaults.size) : options.size instanceof ol.expr.Expression ? options.size : new ol.expr.Literal(options.size);
-  this.fillColor_ = !goog.isDefAndNotNull(options.fillColor) ? null : options.fillColor instanceof ol.expr.Expression ? options.fillColor : new ol.expr.Literal(options.fillColor);
-  var strokeColor = null, strokeWidth = null;
-  if(goog.isDefAndNotNull(options.strokeColor) || goog.isDefAndNotNull(options.strokeWidth)) {
+  this.size_ = !goog.isDefAndNotNull(options.size) ? new ol.expr.Literal(ol.style.ShapeDefaults.size) : options.size instanceof ol.expr.Expression ? options.size : new ol.expr.Literal(options.size);
+  var fillColor = null, fillOpacity = null;
+  if(goog.isDefAndNotNull(options.fillColor) || goog.isDefAndNotNull(options.fillOpacity)) {
+    if(goog.isDefAndNotNull(options.fillColor)) {
+      fillColor = options.fillColor instanceof ol.expr.Expression ? options.fillColor : new ol.expr.Literal(options.fillColor)
+    }else {
+      fillColor = new ol.expr.Literal((ol.style.ShapeDefaults.fillColor))
+    }
+    if(goog.isDefAndNotNull(options.fillOpacity)) {
+      fillOpacity = options.fillOpacity instanceof ol.expr.Expression ? options.fillOpacity : new ol.expr.Literal(options.fillOpacity)
+    }else {
+      fillOpacity = new ol.expr.Literal((ol.style.ShapeDefaults.fillOpacity))
+    }
+  }
+  this.fillColor_ = fillColor;
+  this.fillOpacity_ = fillOpacity;
+  var strokeColor = null, strokeOpacity = null, strokeWidth = null;
+  if(goog.isDefAndNotNull(options.strokeColor) || goog.isDefAndNotNull(options.strokeOpacity) || goog.isDefAndNotNull(options.strokeWidth)) {
     if(goog.isDefAndNotNull(options.strokeColor)) {
       strokeColor = options.strokeColor instanceof ol.expr.Expression ? options.strokeColor : new ol.expr.Literal(options.strokeColor)
     }else {
       strokeColor = new ol.expr.Literal((ol.style.ShapeDefaults.strokeColor))
+    }
+    if(goog.isDefAndNotNull(options.strokeOpacity)) {
+      strokeOpacity = options.strokeOpacity instanceof ol.expr.Expression ? options.strokeOpacity : new ol.expr.Literal(options.strokeOpacity)
+    }else {
+      strokeOpacity = new ol.expr.Literal((ol.style.ShapeDefaults.strokeOpacity))
     }
     if(goog.isDefAndNotNull(options.strokeWidth)) {
       strokeWidth = options.strokeWidth instanceof ol.expr.Expression ? options.strokeWidth : new ol.expr.Literal(options.strokeWidth)
@@ -19836,9 +19921,11 @@ ol.style.Shape = function(options) {
     }
   }
   this.strokeColor_ = strokeColor;
+  this.strokeOpacity_ = strokeOpacity;
   this.strokeWidth_ = strokeWidth;
-  goog.asserts.assert(!goog.isNull(this.fillColor_) || !(goog.isNull(this.strokeColor_) && goog.isNull(this.strokeWidth_)), "Stroke or fill properties must be provided");
-  this.opacity_ = !goog.isDef(options.opacity) ? new ol.expr.Literal(ol.style.ShapeDefaults.opacity) : options.opacity instanceof ol.expr.Expression ? options.opacity : new ol.expr.Literal(options.opacity)
+  var fill = !goog.isNull(this.fillColor_) && !goog.isNull(this.fillOpacity_);
+  var stroke = !goog.isNull(this.strokeColor_) && !goog.isNull(this.strokeOpacity_) && !goog.isNull(this.strokeWidth_);
+  goog.asserts.assert(fill || stroke, "Stroke or fill properties must be provided")
 };
 ol.style.Shape.prototype.createLiteral = function(opt_feature) {
   var size = ol.expr.evaluateFeature(this.size_, opt_feature);
@@ -19848,32 +19935,45 @@ ol.style.Shape.prototype.createLiteral = function(opt_feature) {
     fillColor = ol.expr.evaluateFeature(this.fillColor_, opt_feature);
     goog.asserts.assertString(fillColor, "fillColor must be a string")
   }
+  var fillOpacity;
+  if(!goog.isNull(this.fillOpacity_)) {
+    fillOpacity = ol.expr.evaluateFeature(this.fillOpacity_, opt_feature);
+    goog.asserts.assertNumber(fillOpacity, "fillOpacity must be a number")
+  }
   var strokeColor;
   if(!goog.isNull(this.strokeColor_)) {
     strokeColor = ol.expr.evaluateFeature(this.strokeColor_, opt_feature);
     goog.asserts.assertString(strokeColor, "strokeColor must be a string")
+  }
+  var strokeOpacity;
+  if(!goog.isNull(this.strokeOpacity_)) {
+    strokeOpacity = ol.expr.evaluateFeature(this.strokeOpacity_, opt_feature);
+    goog.asserts.assertNumber(strokeOpacity, "strokeOpacity must be a number")
   }
   var strokeWidth;
   if(!goog.isNull(this.strokeWidth_)) {
     strokeWidth = ol.expr.evaluateFeature(this.strokeWidth_, opt_feature);
     goog.asserts.assertNumber(strokeWidth, "strokeWidth must be a number")
   }
-  goog.asserts.assert(goog.isDef(fillColor) || goog.isDef(strokeColor) && goog.isDef(strokeWidth), "either fillColor or strokeColor and strokeWidth must be defined");
-  var opacity = ol.expr.evaluateFeature(this.opacity_, opt_feature);
-  goog.asserts.assertNumber(opacity, "opacity must be a number");
-  return new ol.style.ShapeLiteral({type:this.type_, size:size, fillColor:fillColor, strokeColor:strokeColor, strokeWidth:strokeWidth, opacity:opacity})
+  var fill = goog.isDef(fillColor) && goog.isDef(fillOpacity);
+  var stroke = goog.isDef(strokeColor) && goog.isDef(strokeOpacity) && goog.isDef(strokeWidth);
+  goog.asserts.assert(fill || stroke, "either fill or stroke properties must be defined");
+  return new ol.style.ShapeLiteral({type:this.type_, size:size, fillColor:fillColor, fillOpacity:fillOpacity, strokeColor:strokeColor, strokeOpacity:strokeOpacity, strokeWidth:strokeWidth})
 };
 ol.style.Shape.prototype.getFillColor = function() {
   return this.fillColor_
 };
-ol.style.Shape.prototype.getOpacity = function() {
-  return this.opacity_
+ol.style.Shape.prototype.getFillOpacity = function() {
+  return this.fillOpacity_
 };
 ol.style.Shape.prototype.getSize = function() {
   return this.size_
 };
 ol.style.Shape.prototype.getStrokeColor = function() {
   return this.strokeColor_
+};
+ol.style.Shape.prototype.getStrokeOpacity = function() {
+  return this.strokeOpacity_
 };
 ol.style.Shape.prototype.getStrokeWidth = function() {
   return this.strokeWidth_
@@ -19885,9 +19985,9 @@ ol.style.Shape.prototype.setFillColor = function(fillColor) {
   goog.asserts.assertInstanceof(fillColor, ol.expr.Expression);
   this.fillColor_ = fillColor
 };
-ol.style.Shape.prototype.setOpacity = function(opacity) {
-  goog.asserts.assertInstanceof(opacity, ol.expr.Expression);
-  this.opacity_ = opacity
+ol.style.Shape.prototype.setFillOpacity = function(fillOpacity) {
+  goog.asserts.assertInstanceof(fillOpacity, ol.expr.Expression);
+  this.fillOpacity_ = fillOpacity
 };
 ol.style.Shape.prototype.setSize = function(size) {
   goog.asserts.assertInstanceof(size, ol.expr.Expression);
@@ -19897,6 +19997,10 @@ ol.style.Shape.prototype.setStrokeColor = function(strokeColor) {
   goog.asserts.assertInstanceof(strokeColor, ol.expr.Expression);
   this.strokeColor_ = strokeColor
 };
+ol.style.Shape.prototype.setStrokeOpacity = function(strokeOpacity) {
+  goog.asserts.assertInstanceof(strokeOpacity, ol.expr.Expression);
+  this.strokeOpacity_ = strokeOpacity
+};
 ol.style.Shape.prototype.setStrokeWidth = function(strokeWidth) {
   goog.asserts.assertInstanceof(strokeWidth, ol.expr.Expression);
   this.strokeWidth_ = strokeWidth
@@ -19904,7 +20008,7 @@ ol.style.Shape.prototype.setStrokeWidth = function(strokeWidth) {
 ol.style.Shape.prototype.setType = function(type) {
   this.type_ = type
 };
-ol.style.ShapeDefaults = new ol.style.ShapeLiteral({type:ol.style.ShapeType.CIRCLE, size:5, fillColor:"#ffffff", strokeColor:"#696969", strokeWidth:1.5, opacity:0.75});
+ol.style.ShapeDefaults = new ol.style.ShapeLiteral({type:ol.style.ShapeType.CIRCLE, size:5, fillColor:"#ffffff", fillOpacity:0.4, strokeColor:"#696969", strokeOpacity:0.8, strokeWidth:1.5});
 goog.provide("ol.renderer.canvas.VectorRenderer");
 goog.require("goog.asserts");
 goog.require("goog.dom");
@@ -19979,7 +20083,7 @@ ol.renderer.canvas.VectorRenderer.prototype.renderFeaturesByGeometryType = funct
 };
 ol.renderer.canvas.VectorRenderer.prototype.renderLineStringFeatures_ = function(features, symbolizer) {
   var context = this.context_, i, ii, feature, id, currentSize, geometry, components, j, jj, line, dim, k, kk, vec, strokeSize;
-  context.globalAlpha = symbolizer.opacity;
+  context.globalAlpha = symbolizer.strokeOpacity;
   context.strokeStyle = symbolizer.strokeColor;
   context.lineWidth = symbolizer.strokeWidth;
   context.lineCap = "round";
@@ -20081,8 +20185,7 @@ ol.renderer.canvas.VectorRenderer.prototype.renderText_ = function(features, tex
   }
 };
 ol.renderer.canvas.VectorRenderer.prototype.renderPolygonFeatures_ = function(features, symbolizer) {
-  var context = this.context_, strokeColor = symbolizer.strokeColor, strokeWidth = symbolizer.strokeWidth, fillColor = symbolizer.fillColor, i, ii, geometry, components, j, jj, poly, rings, numRings, ring, dim, k, kk, vec;
-  context.globalAlpha = symbolizer.opacity;
+  var context = this.context_, strokeColor = symbolizer.strokeColor, strokeWidth = symbolizer.strokeWidth, strokeOpacity = symbolizer.strokeOpacity, fillColor = symbolizer.fillColor, fillOpacity = symbolizer.fillOpacity, globalAlpha, i, ii, geometry, components, j, jj, poly, rings, numRings, ring, dim, k, kk, vec;
   if(strokeColor) {
     context.strokeStyle = strokeColor;
     if(strokeWidth) {
@@ -20120,7 +20223,17 @@ ol.renderer.canvas.VectorRenderer.prototype.renderPolygonFeatures_ = function(fe
           }
         }
         if(fillColor && strokeColor) {
+          if(fillOpacity !== globalAlpha) {
+            goog.asserts.assertNumber(fillOpacity);
+            context.globalAlpha = fillOpacity;
+            globalAlpha = fillOpacity
+          }
           context.fill();
+          if(strokeOpacity !== globalAlpha) {
+            goog.asserts.assertNumber(strokeOpacity);
+            context.globalAlpha = strokeOpacity;
+            globalAlpha = strokeOpacity
+          }
           context.stroke();
           if(i < ii - 1 || j < jj - 1) {
             context.beginPath()
@@ -20131,8 +20244,18 @@ ol.renderer.canvas.VectorRenderer.prototype.renderPolygonFeatures_ = function(fe
   }
   if(!(fillColor && strokeColor)) {
     if(fillColor) {
+      if(fillOpacity !== globalAlpha) {
+        goog.asserts.assertNumber(fillOpacity);
+        context.globalAlpha = fillOpacity;
+        globalAlpha = fillOpacity
+      }
       context.fill()
     }else {
+      if(strokeOpacity !== globalAlpha) {
+        goog.asserts.assertNumber(strokeOpacity);
+        context.globalAlpha = strokeOpacity;
+        globalAlpha = strokeOpacity
+      }
       context.stroke()
     }
   }
@@ -20141,7 +20264,6 @@ ol.renderer.canvas.VectorRenderer.renderCircle_ = function(circle) {
   var strokeWidth = circle.strokeWidth || 0, size = circle.size + 2 * strokeWidth + 1, mid = size / 2, canvas = (goog.dom.createElement(goog.dom.TagName.CANVAS)), context = (canvas.getContext("2d")), fillColor = circle.fillColor, strokeColor = circle.strokeColor, twoPi = Math.PI * 2;
   canvas.height = size;
   canvas.width = size;
-  context.globalAlpha = circle.opacity;
   if(fillColor) {
     context.fillStyle = fillColor
   }
@@ -20154,9 +20276,13 @@ ol.renderer.canvas.VectorRenderer.renderCircle_ = function(circle) {
   context.beginPath();
   context.arc(mid, mid, circle.size / 2, 0, twoPi, true);
   if(fillColor) {
+    goog.asserts.assertNumber(circle.fillOpacity);
+    context.globalAlpha = circle.fillOpacity;
     context.fill()
   }
   if(strokeColor) {
+    goog.asserts.assertNumber(circle.strokeOpacity);
+    context.globalAlpha = circle.strokeOpacity;
     context.stroke()
   }
   return canvas
@@ -25589,45 +25715,60 @@ ol.parser.GeoJSON.read = function(str) {
 };
 ol.parser.GeoJSON.prototype.readFeaturesFromString = function(str, opt_options) {
   var json = (JSON.parse(str));
-  return{features:this.parseFeatureCollection_(json, opt_options), metadata:{projection:"EPSG:4326"}}
+  return{features:this.parseAsFeatureCollection_(json, opt_options), metadata:{projection:"EPSG:4326"}}
 };
 ol.parser.GeoJSON.prototype.readFeaturesFromObject = function(object, opt_options) {
-  return{features:this.parseFeatureCollection_(object, opt_options), metadata:{projection:"EPSG:4326"}}
+  return{features:this.parseAsFeatureCollection_(object, opt_options), metadata:{projection:"EPSG:4326"}}
 };
-ol.parser.GeoJSON.prototype.parse_ = function(json) {
+ol.parser.GeoJSON.prototype.parse_ = function(json, opt_options) {
   var result;
-  switch(json.type) {
-    case "FeatureCollection":
-      result = this.parseFeatureCollection_((json));
-      break;
-    case "Feature":
-      result = this.parseFeature_((json));
-      break;
-    case "GeometryCollection":
-      result = this.parseGeometryCollection_((json));
-      break;
-    case "Point":
-      result = this.parsePoint_((json));
-      break;
-    case "LineString":
-      result = this.parseLineString_((json));
-      break;
-    case "Polygon":
-      result = this.parsePolygon_((json));
-      break;
-    case "MultiPoint":
-      result = this.parseMultiPoint_((json));
-      break;
-    case "MultiLineString":
-      result = this.parseMultiLineString_((json));
-      break;
-    case "MultiPolygon":
-      result = this.parseMultiPolygon_((json));
-      break;
-    default:
-      throw new Error("GeoJSON parsing not implemented for type: " + json.type);
+  if(json.type === "FeatureCollection") {
+    result = this.parseFeatureCollection_((json), opt_options)
+  }else {
+    if(json.type === "Feature") {
+      result = this.parseFeature_((json), opt_options)
+    }else {
+      if(json.type === "GeometryCollection") {
+        result = this.parseGeometryCollection_((json), opt_options)
+      }else {
+        var feature = this.parseFeature_(({type:"Feature", geometry:json}), opt_options);
+        result = feature.getGeometry()
+      }
+    }
   }
   return result
+};
+ol.parser.GeoJSON.prototype.parseAsFeatureCollection_ = function(json, opt_options) {
+  var obj = this.parse_(json, opt_options);
+  var features = [];
+  var feature;
+  if(obj instanceof ol.Feature) {
+    features = [obj]
+  }else {
+    if(obj instanceof ol.geom.Geometry) {
+      feature = new ol.Feature;
+      feature.setGeometry(obj);
+      features = [feature]
+    }else {
+      if(goog.isArray(obj)) {
+        var item, geomArray;
+        for(var i = 0, ii = obj.length;i < ii;++i) {
+          item = obj[i];
+          geomArray = geomArray || item instanceof ol.geom.Geometry;
+          if(!geomArray) {
+            goog.asserts.assert(item instanceof ol.Feature, "expected feature");
+            features = obj;
+            break
+          }else {
+            feature = new ol.Feature;
+            feature.setGeometry(item);
+            features[i] = feature
+          }
+        }
+      }
+    }
+  }
+  return features
 };
 ol.parser.GeoJSON.prototype.parseFeature_ = function(json, opt_options) {
   var geomJson = json.geometry, geometry = null, options = opt_options || {};
@@ -25676,10 +25817,10 @@ ol.parser.GeoJSON.prototype.parseFeatureCollection_ = function(json, opt_options
   }
   return result
 };
-ol.parser.GeoJSON.prototype.parseGeometryCollection_ = function(json) {
+ol.parser.GeoJSON.prototype.parseGeometryCollection_ = function(json, opt_options) {
   var geometries = json.geometries, len = geometries.length, result = new Array(len), i;
   for(i = 0;i < len;++i) {
-    result[i] = this.parse_((geometries[i]))
+    result[i] = this.parse_((geometries[i]), opt_options)
   }
   return result
 };
@@ -27785,7 +27926,7 @@ ol.parser.KML = function(opt_options) {
     this.readChildNodes(node, symbolizer);
     if(symbolizer.color) {
       symbolizer.strokeColor = symbolizer.color.color;
-      symbolizer.opacity = symbolizer.color.opacity
+      symbolizer.strokeOpacity = symbolizer.color.opacity
     }
     if(symbolizer.width) {
       symbolizer.strokeWidth = parseFloat(symbolizer.width)
@@ -27795,26 +27936,27 @@ ol.parser.KML = function(opt_options) {
     obj["ids"].push(node.getAttribute("id"));
     obj["symbolizers"].push(new ol.style.Line(symbolizer))
   }, "PolyStyle":function(node, obj) {
+    var style = {};
     var symbolizer = {};
-    this.readChildNodes(node, symbolizer);
-    if(symbolizer.color) {
-      symbolizer.fillColor = symbolizer.color.color
+    this.readChildNodes(node, style);
+    if(!(style.fill === "0" || style.fill === "false")) {
+      if(style.color) {
+        symbolizer.fillColor = style.color.color;
+        symbolizer.fillOpacity = style.color.opacity
+      }else {
+        symbolizer.fillColor = "#ffffff";
+        symbolizer.fillOpacity = 1
+      }
     }
-    if(symbolizer.fill === "0" || symbolizer.fill === "false") {
-      symbolizer.opacity = 0
-    }else {
-      symbolizer.opacity = symbolizer.color.opacity
+    if(!(style.outline === "0" || style.outline === "false")) {
+      if(style.color) {
+        symbolizer.strokeColor = style.color.color;
+        symbolizer.strokeOpacity = style.color.opacity
+      }else {
+        symbolizer.strokeColor = "#ffffff";
+        symbolizer.strokeOpacity = 1
+      }
     }
-    if(symbolizer.width) {
-      symbolizer.strokeWidth = parseFloat(symbolizer.width)
-    }
-    if(symbolizer.outline === "0" || symbolizer.outline === "false") {
-      symbolizer.strokeWidth = 0
-    }
-    delete symbolizer.outline;
-    delete symbolizer.width;
-    delete symbolizer.color;
-    delete symbolizer.fill;
     obj["ids"].push(node.getAttribute("id"));
     obj["symbolizers"].push(new ol.style.Polygon(symbolizer))
   }, "fill":function(node, obj) {
@@ -28011,17 +28153,32 @@ ol.parser.KML = function(opt_options) {
     }
     var symbolizer = symbolizerObj.symbolizer;
     var literal = symbolizer instanceof ol.style.PolygonLiteral ? symbolizer : symbolizer.createLiteral();
-    if(literal.opacity !== 0) {
-      this.writeNode("fill", "1", null, node)
+    var color, opacity;
+    if(literal.fillOpacity !== 0) {
+      this.writeNode("fill", "1", null, node);
+      color = literal.fillColor;
+      opacity = literal.fillOpacity
     }else {
       this.writeNode("fill", "0", null, node)
     }
-    this.writeNode("color", {color:literal.fillColor.substring(1), opacity:literal.opacity}, null, node);
-    this.writeNode("width", literal.strokeWidth, null, node);
+    if(literal.strokeOpacity) {
+      this.writeNode("outline", "1", null, node);
+      color = color || literal.strokeColor;
+      opacity = opacity || literal.strokeOpacity
+    }else {
+      this.writeNode("outline", "0", null, node)
+    }
+    if(color && opacity) {
+      this.writeNode("color", {color:color.substring(1), opacity:opacity}, null, node)
+    }
     return node
   }, "fill":function(fill) {
     var node = this.createElementNS("fill");
     node.appendChild(this.createTextNode(fill));
+    return node
+  }, "outline":function(outline) {
+    var node = this.createElementNS("outline");
+    node.appendChild(this.createTextNode(outline));
     return node
   }, "LineStyle":function(symbolizerObj) {
     var node = this.createElementNS("LineStyle");
@@ -28030,7 +28187,7 @@ ol.parser.KML = function(opt_options) {
     }
     var symbolizer = symbolizerObj.symbolizer;
     var literal = symbolizer instanceof ol.style.LineLiteral ? symbolizer : symbolizer.createLiteral();
-    this.writeNode("color", {color:literal.strokeColor.substring(1), opacity:literal.opacity}, null, node);
+    this.writeNode("color", {color:literal.strokeColor.substring(1), opacity:literal.strokeOpacity}, null, node);
     this.writeNode("width", literal.strokeWidth, null, node);
     return node
   }, "color":function(colorObj) {
@@ -31366,6 +31523,10 @@ ol.source.DebugTileSource.prototype.getTile = function(z, x, y) {
     return tile
   }
 };
+goog.provide("ol.source.FeatureInfoSource");
+ol.source.FeatureInfoSource = function() {
+};
+ol.source.FeatureInfoSource.prototype.getFeatureInfoForPixel = goog.abstractMethod;
 goog.provide("ol.source.XYZ");
 goog.provide("ol.source.XYZOptions");
 goog.require("ol.Attribution");
@@ -31434,9 +31595,12 @@ ol.source.MapQuestOpenAerial = function() {
   goog.base(this, {attributions:attributions, crossOrigin:"anonymous", logo:"http://developer.mapquest.com/content/osm/mq_logo.png", maxZoom:18, opaque:true, url:"http://oatile{1-4}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg"})
 };
 goog.inherits(ol.source.MapQuestOpenAerial, ol.source.XYZ);
+goog.provide("ol.source.WMSGetFeatureInfoMethod");
 goog.provide("ol.source.wms");
+goog.require("goog.net.XhrIo");
 goog.require("goog.object");
 goog.require("goog.uri.utils");
+ol.source.WMSGetFeatureInfoMethod = {IFRAME:"iframe", XHR_GET:"xhr_get"};
 ol.source.wms.getUrl = function(baseUrl, params, extent, size, projection) {
   var baseParams = {"SERVICE":"WMS", "VERSION":"1.3.0", "REQUEST":"GetMap", "FORMAT":"image/png", "TRANSPARENT":true, "WIDTH":Math.round(size[0]), "HEIGHT":Math.round(size[1])};
   goog.object.extend(baseParams, params);
@@ -31449,15 +31613,51 @@ ol.source.wms.getUrl = function(baseUrl, params, extent, size, projection) {
   baseParams["BBOX"] = bboxValues.join(",");
   return goog.uri.utils.appendParamsFromMap(baseUrl, baseParams)
 };
+ol.source.wms.getFeatureInfo = function(url, pixel, options, success, opt_error) {
+  url = url.replace("REQUEST\x3dGetMap", "REQUEST\x3dGetFeatureInfo").replace(ol.source.wms.regExes.layers, "LAYERS\x3d$1\x26QUERY_LAYERS\x3d$1");
+  options = goog.isDef(options) ? goog.object.clone(options) : {};
+  var localOptions = {method:ol.source.WMSGetFeatureInfoMethod.IFRAME, params:{}};
+  goog.object.extend(localOptions, options);
+  var params = {"INFO_FORMAT":"text/html"}, version = parseFloat(url.match(ol.source.wms.regExes.version)[1]), x = Math.round(pixel[0]), y = Math.round(pixel[1]);
+  if(version >= 1.3) {
+    goog.object.extend(params, {"I":x, "J":y})
+  }else {
+    goog.object.extend(params, {"X":x, "Y":y})
+  }
+  goog.object.extend(params, localOptions.params);
+  url = goog.uri.utils.appendParamsFromMap(url, params);
+  if(localOptions.method == ol.source.WMSGetFeatureInfoMethod.IFRAME) {
+    goog.global.setTimeout(function() {
+      success('\x3ciframe seamless src\x3d"' + url + '"\x3e\x3c/iframe\x3e')
+    }, 0)
+  }else {
+    if(localOptions.method == ol.source.WMSGetFeatureInfoMethod.XHR_GET) {
+      goog.net.XhrIo.send(url, function(event) {
+        var xhr = event.target;
+        if(xhr.isSuccess()) {
+          success(xhr.getResponseText())
+        }else {
+          if(goog.isDef(opt_error)) {
+            opt_error()
+          }
+        }
+      })
+    }
+  }
+};
+ol.source.wms.regExes = {layers:/LAYERS=([^&]+)/, version:/VERSION=([^&]+)/};
 goog.provide("ol.source.SingleImageWMS");
+goog.require("goog.asserts");
 goog.require("ol.Image");
 goog.require("ol.ImageUrlFunction");
 goog.require("ol.extent");
+goog.require("ol.source.FeatureInfoSource");
 goog.require("ol.source.ImageSource");
 goog.require("ol.source.wms");
 ol.source.SingleImageWMS = function(options) {
   var imageUrlFunction = goog.isDef(options.url) ? ol.ImageUrlFunction.createFromParamsFunction(options.url, options.params, ol.source.wms.getUrl) : ol.ImageUrlFunction.nullImageUrlFunction;
   goog.base(this, {attributions:options.attributions, crossOrigin:options.crossOrigin, extent:options.extent, projection:options.projection, resolutions:options.resolutions, imageUrlFunction:imageUrlFunction});
+  this.getFeatureInfoOptions_ = goog.isDef(options.getFeatureInfoOptions) ? options.getFeatureInfoOptions : {};
   this.image_ = null;
   this.ratio_ = goog.isDef(options.ratio) ? options.ratio : 1.5
 };
@@ -31475,6 +31675,11 @@ ol.source.SingleImageWMS.prototype.getImage = function(extent, resolution, proje
   var size = [width, height];
   this.image_ = this.createImage(extent, resolution, size, projection);
   return this.image_
+};
+ol.source.SingleImageWMS.prototype.getFeatureInfoForPixel = function(pixel, map, success, opt_error) {
+  var view2D = map.getView().getView2D(), projection = view2D.getProjection(), size = map.getSize(), bottomLeft = map.getCoordinateFromPixel([0, size[1]]), topRight = map.getCoordinateFromPixel([size[0], 0]), extent = [bottomLeft[0], topRight[0], bottomLeft[1], topRight[1]], url = this.imageUrlFunction(extent, size, projection);
+  goog.asserts.assert(goog.isDef(url), "ol.source.SingleImageWMS#imageUrlFunction does not return a url");
+  ol.source.wms.getFeatureInfo(url, pixel, this.getFeatureInfoOptions_, success, opt_error)
 };
 goog.provide("ol.source.Stamen");
 goog.require("goog.asserts");
@@ -31583,10 +31788,12 @@ ol.source.TileJSON.prototype.isReady = function() {
 };
 goog.provide("ol.source.TiledWMS");
 goog.require("goog.array");
+goog.require("goog.asserts");
 goog.require("goog.math");
 goog.require("ol.TileCoord");
 goog.require("ol.TileUrlFunction");
 goog.require("ol.extent");
+goog.require("ol.source.FeatureInfoSource");
 goog.require("ol.source.ImageTileSource");
 goog.require("ol.source.wms");
 ol.source.TiledWMS = function(options) {
@@ -31629,9 +31836,15 @@ ol.source.TiledWMS = function(options) {
     }
     return new ol.TileCoord(tileCoord.z, x, tileCoord.y)
   };
-  goog.base(this, {attributions:options.attributions, crossOrigin:options.crossOrigin, extent:extent, tileGrid:options.tileGrid, opaque:!transparent, projection:options.projection, tileUrlFunction:ol.TileUrlFunction.withTileCoordTransform(tileCoordTransform, tileUrlFunction)})
+  goog.base(this, {attributions:options.attributions, crossOrigin:options.crossOrigin, extent:extent, tileGrid:options.tileGrid, opaque:!transparent, projection:options.projection, tileUrlFunction:ol.TileUrlFunction.withTileCoordTransform(tileCoordTransform, tileUrlFunction)});
+  this.getFeatureInfoOptions_ = goog.isDef(options.getFeatureInfoOptions) ? options.getFeatureInfoOptions : {}
 };
 goog.inherits(ol.source.TiledWMS, ol.source.ImageTileSource);
+ol.source.TiledWMS.prototype.getFeatureInfoForPixel = function(pixel, map, success, opt_error) {
+  var coord = map.getCoordinateFromPixel(pixel), view2D = map.getView().getView2D(), projection = view2D.getProjection(), tileGrid = goog.isNull(this.tileGrid) ? ol.tilegrid.getForProjection(projection) : this.tileGrid, tileCoord = tileGrid.getTileCoordForCoordAndResolution(coord, view2D.getResolution()), tileExtent = tileGrid.getTileCoordExtent(tileCoord), offset = map.getPixelFromCoordinate(ol.extent.getTopLeft(tileExtent)), url = this.tileUrlFunction(tileCoord, projection);
+  goog.asserts.assert(goog.isDef(url), "ol.source.TiledWMS#tileUrlFunction does not return a url");
+  ol.source.wms.getFeatureInfo(url, [pixel[0] - offset[0], pixel[1] - offset[1]], this.getFeatureInfoOptions_, success, opt_error)
+};
 goog.provide("ol.tilegrid.WMTS");
 goog.require("goog.array");
 goog.require("goog.asserts");
@@ -32053,6 +32266,7 @@ goog.require("ol.renderer.webgl.vectorlayer2.shader.PointCollection");
 goog.require("ol.size");
 goog.require("ol.source.BingMaps");
 goog.require("ol.source.DebugTileSource");
+goog.require("ol.source.FeatureInfoSource");
 goog.require("ol.source.ImageSource");
 goog.require("ol.source.ImageTileSource");
 goog.require("ol.source.MapQuestOSM");
@@ -32068,6 +32282,7 @@ goog.require("ol.source.TileSourceOptions");
 goog.require("ol.source.TiledWMS");
 goog.require("ol.source.Vector");
 goog.require("ol.source.VectorSource2");
+goog.require("ol.source.WMSGetFeatureInfoMethod");
 goog.require("ol.source.WMTS");
 goog.require("ol.source.WMTSRequestEncoding");
 goog.require("ol.source.XYZ");
@@ -32159,6 +32374,7 @@ goog.provide("ol.source.TileJSONOptions");
 goog.provide("ol.source.TiledWMSOptions");
 goog.provide("ol.source.VectorOptions");
 goog.provide("ol.source.VectorSource2Options");
+goog.provide("ol.source.WMSGetFeatureInfoOptions");
 goog.provide("ol.source.WMTSOptions");
 goog.provide("ol.style.IconOptions");
 goog.provide("ol.style.LineOptions");
@@ -32223,6 +32439,7 @@ ol.source.TileJSONOptions;
 ol.source.TiledWMSOptions;
 ol.source.VectorOptions;
 ol.source.VectorSource2Options;
+ol.source.WMSGetFeatureInfoOptions;
 ol.source.WMTSOptions;
 ol.style.IconOptions;
 ol.style.LineOptions;
