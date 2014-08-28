@@ -2,27 +2,40 @@ goog.provide('ol.proj.EPSG3857');
 
 goog.require('goog.array');
 goog.require('goog.asserts');
-goog.require('ol.Projection');
-goog.require('ol.ProjectionUnits');
 goog.require('ol.math');
 goog.require('ol.proj');
+goog.require('ol.proj.Projection');
+goog.require('ol.proj.Units');
 
 
 
 /**
+ * @classdesc
+ * Projection object for web/spherical Mercator (EPSG:3857).
+ *
  * @constructor
- * @extends {ol.Projection}
+ * @extends {ol.proj.Projection}
  * @param {string} code Code.
+ * @private
  */
-ol.proj.EPSG3857 = function(code) {
+ol.proj.EPSG3857_ = function(code) {
   goog.base(this, {
     code: code,
-    units: ol.ProjectionUnits.METERS,
+    units: ol.proj.Units.METERS,
     extent: ol.proj.EPSG3857.EXTENT,
-    global: true
+    global: true,
+    worldExtent: ol.proj.EPSG3857.WORLD_EXTENT
   });
 };
-goog.inherits(ol.proj.EPSG3857, ol.Projection);
+goog.inherits(ol.proj.EPSG3857_, ol.proj.Projection);
+
+
+/**
+ * @inheritDoc
+ */
+ol.proj.EPSG3857_.prototype.getPointResolution = function(resolution, point) {
+  return resolution / ol.math.cosh(point[1] / ol.proj.EPSG3857.RADIUS);
+};
 
 
 /**
@@ -44,9 +57,16 @@ ol.proj.EPSG3857.HALF_SIZE = Math.PI * ol.proj.EPSG3857.RADIUS;
  * @type {ol.Extent}
  */
 ol.proj.EPSG3857.EXTENT = [
-  -ol.proj.EPSG3857.HALF_SIZE, ol.proj.EPSG3857.HALF_SIZE,
-  -ol.proj.EPSG3857.HALF_SIZE, ol.proj.EPSG3857.HALF_SIZE
+  -ol.proj.EPSG3857.HALF_SIZE, -ol.proj.EPSG3857.HALF_SIZE,
+  ol.proj.EPSG3857.HALF_SIZE, ol.proj.EPSG3857.HALF_SIZE
 ];
+
+
+/**
+ * @const
+ * @type {ol.Extent}
+ */
+ol.proj.EPSG3857.WORLD_EXTENT = [-180, -85, 180, 85];
 
 
 /**
@@ -59,7 +79,8 @@ ol.proj.EPSG3857.CODES = [
   'EPSG:102100',
   'EPSG:102113',
   'EPSG:900913',
-  'urn:ogc:def:crs:EPSG:6.18:3:3857'
+  'urn:ogc:def:crs:EPSG:6.18:3:3857',
+  'http://www.opengis.net/gml/srs/epsg.xml#3857'
 ];
 
 
@@ -67,12 +88,12 @@ ol.proj.EPSG3857.CODES = [
  * Projections equal to EPSG:3857.
  *
  * @const
- * @type {Array.<ol.Projection>}
+ * @type {Array.<ol.proj.Projection>}
  */
 ol.proj.EPSG3857.PROJECTIONS = goog.array.map(
     ol.proj.EPSG3857.CODES,
     function(code) {
-      return new ol.proj.EPSG3857(code);
+      return new ol.proj.EPSG3857_(code);
     });
 
 
@@ -81,11 +102,10 @@ ol.proj.EPSG3857.PROJECTIONS = goog.array.map(
  *
  * @param {Array.<number>} input Input array of coordinate values.
  * @param {Array.<number>=} opt_output Output array of coordinate values.
- * @param {number=} opt_dimension Dimension (default is 2).
+ * @param {number=} opt_dimension Dimension (default is `2`).
  * @return {Array.<number>} Output array of coordinate values.
  */
-ol.proj.EPSG3857.fromEPSG4326 = function(
-    input, opt_output, opt_dimension) {
+ol.proj.EPSG3857.fromEPSG4326 = function(input, opt_output, opt_dimension) {
   var length = input.length,
       dimension = opt_dimension > 1 ? opt_dimension : 2,
       output = opt_output;
@@ -112,7 +132,7 @@ ol.proj.EPSG3857.fromEPSG4326 = function(
  *
  * @param {Array.<number>} input Input array of coordinate values.
  * @param {Array.<number>=} opt_output Output array of coordinate values.
- * @param {number=} opt_dimension Dimension (default is 2).
+ * @param {number=} opt_dimension Dimension (default is `2`).
  * @return {Array.<number>} Output array of coordinate values.
  */
 ol.proj.EPSG3857.toEPSG4326 = function(input, opt_output, opt_dimension) {
@@ -134,12 +154,4 @@ ol.proj.EPSG3857.toEPSG4326 = function(input, opt_output, opt_dimension) {
         Math.exp(input[i + 1] / ol.proj.EPSG3857.RADIUS)) / Math.PI - 90;
   }
   return output;
-};
-
-
-/**
- * @inheritDoc
- */
-ol.proj.EPSG3857.prototype.getPointResolution = function(resolution, point) {
-  return resolution / ol.math.cosh(point[1] / ol.proj.EPSG3857.RADIUS);
 };

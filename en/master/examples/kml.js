@@ -1,48 +1,81 @@
-var raster = new ol.layer.TileLayer({
-  source: new ol.source.TiledWMS({
-    url: 'http://vmap0.tiles.osgeo.org/wms/vmap0',
-    crossOrigin: null,
-    params: {
-      'LAYERS': 'basic',
-      'VERSION': '1.1.1',
-      'FORMAT': 'image/jpeg'
-    }
+var projection = ol.proj.get('EPSG:3857');
+
+var raster = new ol.layer.Tile({
+  source: new ol.source.BingMaps({
+    imagerySet: 'Aerial',
+    key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3'
   })
 });
 
 var vector = new ol.layer.Vector({
-  source: new ol.source.Vector({
-    parser: new ol.parser.KML({
-      maxDepth: 1, dimension: 2, extractStyles: true, extractAttributes: true
-    }),
-    url: 'data/kml/lines.kml'
-  }),
-  transformFeatureInfo: function(features) {
-    var info = [];
-    for (var i = 0, ii = features.length; i < ii; ++i) {
-      info.push(features[i].get('name'));
-    }
-    return info.join(', ');
-  }
+  source: new ol.source.KML({
+    projection: projection,
+    url: 'data/kml/2012-02-10.kml'
+  })
 });
 
 var map = new ol.Map({
   layers: [raster, vector],
-  renderer: ol.RendererHint.CANVAS,
-  target: 'map',
-  view: new ol.View2D({
-    projection: 'EPSG:4326',
-    center: [-112.169, 36.099],
-    zoom: 11
+  target: document.getElementById('map'),
+  view: new ol.View({
+    center: [876970.8463461736, 5859807.853963373],
+    projection: projection,
+    zoom: 10
   })
 });
 
-map.on(['click', 'mousemove'], function(evt) {
-  map.getFeatureInfo({
-    pixel: evt.getPixel(),
-    layers: [vector],
-    success: function(featureInfo) {
-      document.getElementById('info').innerHTML = featureInfo[0] || '&nbsp';
-    }
+var displayFeatureInfo = function(pixel) {
+  var features = [];
+  map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+    features.push(feature);
   });
+  if (features.length > 0) {
+    var info = [];
+    var i, ii;
+    for (i = 0, ii = features.length; i < ii; ++i) {
+      info.push(features[i].get('name'));
+    }
+    document.getElementById('info').innerHTML = info.join(', ') || '(unknown)';
+    map.getTarget().style.cursor = 'pointer';
+  } else {
+    document.getElementById('info').innerHTML = '&nbsp;';
+    map.getTarget().style.cursor = '';
+  }
+};
+
+$(map.getViewport()).on('mousemove', function(evt) {
+  var pixel = map.getEventPixel(evt.originalEvent);
+  displayFeatureInfo(pixel);
 });
+
+map.on('click', function(evt) {
+  displayFeatureInfo(evt.pixel);
+});
+
+var exportKMLElement = document.getElementById('export-kml');
+if ('download' in exportKMLElement) {
+  var vectorSource = /** @type {ol.source.Vector} */ (vector.getSource());
+  exportKMLElement.addEventListener('click', function(e) {
+    if (!exportKMLElement.href) {
+      var features = [];
+      vectorSource.forEachFeature(function(feature) {
+        var clone = feature.clone();
+        clone.setId(feature.getId());  // clone does not set the id
+        clone.getGeometry().transform(projection, 'EPSG:4326');
+        features.push(clone);
+      });
+      var node = new ol.format.KML().writeFeatures(features);
+      var string = new XMLSerializer().serializeToString(
+          /** @type {Node} */ (node));
+      var base64 = exampleNS.strToBase64(string);
+      exportKMLElement.href =
+          'data:application/vnd.google-earth.kml+xml;base64,' + base64;
+    }
+  }, false);
+} else {
+  var info = document.getElementById('no-download');
+  /**
+   * display error message
+   */
+  info.style.display = '';
+}

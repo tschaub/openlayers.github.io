@@ -1,28 +1,36 @@
-var styles = ['Road', 'Aerial', 'AerialWithLabels'];
+var styles = [
+  'Road',
+  'Aerial',
+  'AerialWithLabels',
+  'collinsBart',
+  'ordnanceSurvey'
+];
 var layers = [];
-for (var i = 0; i < styles.length; ++i) {
-  layers.push(new ol.layer.TileLayer({
+var i, ii;
+for (i = 0, ii = styles.length; i < ii; ++i) {
+  layers.push(new ol.layer.Tile({
     visible: false,
     preload: Infinity,
     source: new ol.source.BingMaps({
-      key: 'Ar33pRUvQOdESG8m_T15MUmNz__E1twPo42bFx9jvdDePhX0PNgAcEm44OVTS7tt',
-      style: styles[i]
+      key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3',
+      imagerySet: styles[i]
     })
   }));
 }
 var map = new ol.Map({
   layers: layers,
-  renderers: ol.RendererHints.createFromQueryData(),
+  renderer: exampleNS.getRendererFromQueryString(),
   target: 'map',
-  view: new ol.View2D({
-    center: ol.proj.transform([-123.1, 49.25], 'EPSG:4326', 'EPSG:3857'),
-    zoom: 8
+  view: new ol.View({
+    center: [-6655.5402445057125, 6709968.258934638],
+    zoom: 13
   })
 });
 
 $('#layer-select').change(function() {
   var style = $(this).find(':selected').val();
-  for (var i = 0; i < layers.length; ++i) {
+  var i, ii;
+  for (i = 0, ii = layers.length; i < ii; ++i) {
     layers[i].setVisible(styles[i] == style);
   }
 });

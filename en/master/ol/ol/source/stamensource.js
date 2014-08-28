@@ -1,6 +1,7 @@
 goog.provide('ol.source.Stamen');
 
 goog.require('goog.asserts');
+goog.require('ol');
 goog.require('ol.Attribution');
 goog.require('ol.source.OSM');
 goog.require('ol.source.XYZ');
@@ -76,22 +77,15 @@ ol.source.StamenProviderConfig = {
 };
 
 
-/**
- * @const {Array.<ol.Attribution>}
- */
-ol.source.STAMEN_ATTRIBUTIONS = [
-  new ol.Attribution(
-      'Map tiles by <a href="http://stamen.com/">Stamen Design</a>, under ' +
-      '<a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.'),
-  ol.source.OSM.DATA_ATTRIBUTION
-];
-
-
 
 /**
+ * @classdesc
+ * Layer source for the Stamen tile server.
+ *
  * @constructor
  * @extends {ol.source.XYZ}
- * @param {ol.source.StamenOptions} options Stamen options.
+ * @param {olx.source.StamenOptions} options Stamen options.
+ * @api stable
  */
 ol.source.Stamen = function(options) {
 
@@ -103,19 +97,35 @@ ol.source.Stamen = function(options) {
   goog.asserts.assert(options.layer in ol.source.StamenLayerConfig);
   var layerConfig = ol.source.StamenLayerConfig[options.layer];
 
+  var protocol = ol.IS_HTTPS ? 'https:' : 'http:';
   var url = goog.isDef(options.url) ? options.url :
-      'http://{a-d}.tile.stamen.com/' + options.layer + '/{z}/{x}/{y}.' +
+      protocol + '//{a-d}.tile.stamen.com/' + options.layer + '/{z}/{x}/{y}.' +
       layerConfig.extension;
 
   goog.base(this, {
-    attributions: ol.source.STAMEN_ATTRIBUTIONS,
+    attributions: ol.source.Stamen.ATTRIBUTIONS,
     crossOrigin: 'anonymous',
     maxZoom: providerConfig.maxZoom,
     // FIXME uncomment the following when tilegrid supports minZoom
     //minZoom: providerConfig.minZoom,
     opaque: layerConfig.opaque,
+    tileLoadFunction: options.tileLoadFunction,
     url: url
   });
 
 };
 goog.inherits(ol.source.Stamen, ol.source.XYZ);
+
+
+/**
+ * @const
+ * @type {Array.<ol.Attribution>}
+ */
+ol.source.Stamen.ATTRIBUTIONS = [
+  new ol.Attribution({
+    html: 'Map tiles by <a href="http://stamen.com/">Stamen Design</a>, ' +
+        'under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY' +
+        ' 3.0</a>.'
+  }),
+  ol.source.OSM.DATA_ATTRIBUTION
+];

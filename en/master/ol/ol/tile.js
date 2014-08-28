@@ -1,5 +1,3 @@
-// FIXME should inQueue be private?
-
 goog.provide('ol.Tile');
 goog.provide('ol.TileState');
 
@@ -23,6 +21,9 @@ ol.TileState = {
 
 
 /**
+ * @classdesc
+ * Base class for tiles.
+ *
  * @constructor
  * @extends {goog.events.EventTarget}
  * @param {ol.TileCoord} tileCoord Tile coordinate.
@@ -56,6 +57,7 @@ ol.Tile.prototype.dispatchChangeEvent = function() {
 
 
 /**
+ * @function
  * @param {Object=} opt_context Object.
  * @return {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement} Image.
  */
@@ -67,6 +69,15 @@ ol.Tile.prototype.getImage = goog.abstractMethod;
  */
 ol.Tile.prototype.getKey = function() {
   return goog.getUid(this).toString();
+};
+
+
+/**
+ * @return {ol.TileCoord}
+ * @api
+ */
+ol.Tile.prototype.getTileCoord = function() {
+  return this.tileCoord;
 };
 
 

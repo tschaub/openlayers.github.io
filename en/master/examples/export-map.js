@@ -1,23 +1,35 @@
 var map = new ol.Map({
   layers: [
-    new ol.layer.TileLayer({
+    new ol.layer.Tile({
       source: new ol.source.OSM()
     })
   ],
-  renderer: ol.RendererHint.CANVAS,
   target: 'map',
-  view: new ol.View2D({
+  controls: ol.control.defaults({
+    attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+      collapsible: false
+    })
+  }),
+  view: new ol.View({
     center: [0, 0],
     zoom: 2
   })
 });
 
-var exportJPEGElement = document.getElementById('export-jpeg');
-exportJPEGElement.addEventListener('click', function(e) {
-  e.target.href = map.getRenderer().getCanvas().toDataURL('image/jpeg');
-}, false);
-
 var exportPNGElement = document.getElementById('export-png');
-exportPNGElement.addEventListener('click', function(e) {
-  e.target.href = map.getRenderer().getCanvas().toDataURL('image/png');
-}, false);
+
+if ('download' in exportPNGElement) {
+  exportPNGElement.addEventListener('click', function(e) {
+    map.once('postcompose', function(event) {
+      var canvas = event.context.canvas;
+      exportPNGElement.href = canvas.toDataURL('image/png');
+    });
+    map.renderSync();
+  }, false);
+} else {
+  var info = document.getElementById('no-download');
+  /**
+   * display error message
+   */
+  info.style.display = '';
+}

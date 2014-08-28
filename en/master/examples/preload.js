@@ -1,16 +1,16 @@
 var map1 = new ol.Map({
   layers: [
-    new ol.layer.TileLayer({
+    new ol.layer.Tile({
       preload: Infinity,
       source: new ol.source.BingMaps({
-        key: 'Ar33pRUvQOdESG8m_T15MUmNz__E1twPo42bFx9jvdDePhX0PNgAcEm44OVTS7tt',
-        style: 'Aerial'
+        key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3',
+        imagerySet: 'Aerial'
       })
     })
   ],
-  renderers: ol.RendererHints.createFromQueryData(),
+  renderer: exampleNS.getRendererFromQueryString(),
   target: 'map1',
-  view: new ol.View2D({
+  view: new ol.View({
     center: [-4808600, -2620936],
     zoom: 8
   })
@@ -18,15 +18,15 @@ var map1 = new ol.Map({
 
 var map2 = new ol.Map({
   layers: [
-    new ol.layer.TileLayer({
+    new ol.layer.Tile({
       preload: 0, // default value
       source: new ol.source.BingMaps({
-        key: 'AlQLZ0-5yk301_ESrmNLma3LYxEKNSg7w-e_knuRfyYFtld-UFvXVs38NOulku3Q',
-        style: 'AerialWithLabels'
+        key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3',
+        imagerySet: 'AerialWithLabels'
       })
     })
   ],
-  renderers: ol.RendererHints.createFromQueryData(),
+  renderer: exampleNS.getRendererFromQueryString(),
   target: 'map2'
 });
 map2.bindTo('view', map1);

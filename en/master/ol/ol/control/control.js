@@ -9,13 +9,33 @@ goog.require('ol.Object');
 
 
 /**
- * Something to be painted over the map to provide a means for interaction
- * (buttons) or to show annotations (status bars).
+ * @classdesc
+ * A control is a visible widget with a DOM element in a fixed position on the
+ * screen. They can involve user input (buttons), or be informational only;
+ * the position is determined using CSS. By default these are placed in the
+ * container with CSS class name `ol-overlaycontainer-stopevent`, but can use
+ * any outside DOM element.
+ *
+ * This is the base class for controls. You can use it for simple custom
+ * controls by creating the element with listeners, creating an instance:
+ * ```js
+ * var myControl = new ol.control.Control({element: myElement});
+ * ```
+ * and then adding this to the map.
+ *
+ * The main advantage of having this as a control rather than a simple separate
+ * DOM element is that preventing propagation is handled for you. Controls
+ * will also be `ol.Object`s in a `ol.Collection`, so you can use their
+ * methods.
+ *
+ * You can also extend this base for your own control class. See
+ * examples/custom-controls for an example of how to do this.
  *
  * @constructor
  * @extends {ol.Object}
  * @implements {oli.control.Control}
- * @param {ol.control.ControlOptions} options Control options.
+ * @param {olx.control.ControlOptions} options Control options.
+ * @api stable
  */
 ol.control.Control = function(options) {
 
@@ -29,9 +49,10 @@ ol.control.Control = function(options) {
 
   /**
    * @private
-   * @type {Element|undefined}
+   * @type {Element}
    */
-  this.target_ = options.target;
+  this.target_ = goog.isDef(options.target) ?
+      goog.dom.getElement(options.target) : null;
 
   /**
    * @private
@@ -44,10 +65,6 @@ ol.control.Control = function(options) {
    * @type {!Array.<?number>}
    */
   this.listenerKeys = [];
-
-  if (goog.isDef(options.map)) {
-    this.setMap(options.map);
-  }
 
 };
 goog.inherits(ol.control.Control, ol.Object);
@@ -65,6 +82,7 @@ ol.control.Control.prototype.disposeInternal = function() {
 /**
  * Get the map associated with this control.
  * @return {ol.Map} Map.
+ * @api stable
  */
 ol.control.Control.prototype.getMap = function() {
   return this.map_;
@@ -77,7 +95,7 @@ ol.control.Control.prototype.getMap = function() {
  * UI.
  * @param {ol.MapEvent} mapEvent Map event.
  */
-ol.control.Control.prototype.handleMapPostrender = function(mapEvent) {};
+ol.control.Control.prototype.handleMapPostrender = goog.nullFunction;
 
 
 /**
@@ -85,6 +103,7 @@ ol.control.Control.prototype.handleMapPostrender = function(mapEvent) {};
  * Subclasses may set up event handlers to get notified about changes to
  * the map here.
  * @param {ol.Map} map Map.
+ * @api stable
  */
 ol.control.Control.prototype.setMap = function(map) {
   if (!goog.isNull(this.map_)) {
@@ -96,13 +115,13 @@ ol.control.Control.prototype.setMap = function(map) {
   }
   this.map_ = map;
   if (!goog.isNull(this.map_)) {
-    var target = goog.isDef(this.target_) ?
-        this.target_ : map.getOverlayContainer();
+    var target = !goog.isNull(this.target_) ?
+        this.target_ : map.getOverlayContainerStopEvent();
     goog.dom.appendChild(target, this.element);
-    if (this.handleMapPostrender !==
-        ol.control.Control.prototype.handleMapPostrender) {
+    if (this.handleMapPostrender !== goog.nullFunction) {
       this.listenerKeys.push(goog.events.listen(map,
           ol.MapEventType.POSTRENDER, this.handleMapPostrender, false, this));
     }
+    map.render();
   }
 };

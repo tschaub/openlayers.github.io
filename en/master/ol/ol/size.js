@@ -3,8 +3,9 @@ goog.provide('ol.size');
 
 
 /**
- * An array representing a size: [width, height].
- * @typedef {Array.<number>} ol.Size
+ * An array of numbers representing a size: `[width, height]`.
+ * @typedef {Array.<number>}
+ * @api stable
  */
 ol.Size;
 

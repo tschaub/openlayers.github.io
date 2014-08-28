@@ -1,20 +1,20 @@
 var layers = [
-  new ol.layer.TileLayer({
-    source: new ol.source.MapQuestOpenAerial()
+  new ol.layer.Tile({
+    source: new ol.source.MapQuest({layer: 'sat'})
   }),
-  new ol.layer.TileLayer({
-    source: new ol.source.TiledWMS({
+  new ol.layer.Tile({
+    extent: [-13884991, 2870341, -7455066, 6338219],
+    source: new ol.source.TileWMS(/** @type {olx.source.TileWMSOptions} */ ({
       url: 'http://demo.opengeo.org/geoserver/wms',
       params: {'LAYERS': 'topp:states', 'TILED': true},
-      extent: [-13884991, -7455066, 2870341, 6338219]
-    })
+      serverType: 'geoserver'
+    }))
   })
 ];
 var map = new ol.Map({
-  renderer: ol.RendererHint.CANVAS,
   layers: layers,
   target: 'map',
-  view: new ol.View2D({
+  view: new ol.View({
     center: [-10997148, 4569099],
     zoom: 4
   })

@@ -3,6 +3,7 @@ goog.provide('ol.structs.Buffer');
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.webgl');
+goog.require('ol');
 goog.require('ol.structs.IntegerSet');
 
 
@@ -16,18 +17,13 @@ ol.structs.BufferUsage = {
 };
 
 
-/**
- * @define {boolean} Replace unused entries with NaNs.
- */
-ol.BUFFER_REPLACE_UNUSED_ENTRIES_WITH_NANS = goog.DEBUG;
-
-
 
 /**
  * @constructor
  * @param {Array.<number>=} opt_arr Array.
  * @param {number=} opt_used Used.
  * @param {number=} opt_usage Usage.
+ * @struct
  */
 ol.structs.Buffer = function(opt_arr, opt_used, opt_usage) {
 
@@ -124,12 +120,12 @@ ol.structs.Buffer.prototype.addDirtySet = function(dirtySet) {
 
 /**
  * @param {function(this: T, number, number)} f Callback.
- * @param {T=} opt_obj The object to be used as the value of 'this' within f.
+ * @param {T=} opt_this The object to use as `this` in `f`.
  * @template T
  */
-ol.structs.Buffer.prototype.forEachRange = function(f, opt_obj) {
+ol.structs.Buffer.prototype.forEachRange = function(f, opt_this) {
   if (this.arr_.length !== 0) {
-    this.freeSet_.forEachRangeInverted(0, this.arr_.length, f, opt_obj);
+    this.freeSet_.forEachRangeInverted(0, this.arr_.length, f, opt_this);
   }
 };
 

@@ -1,7 +1,6 @@
 // FIXME handle geolocation not supported
 
 goog.provide('ol.Geolocation');
-goog.provide('ol.Geolocation.SUPPORTED');
 goog.provide('ol.GeolocationProperty');
 
 goog.require('goog.events');
@@ -9,8 +8,11 @@ goog.require('goog.events.EventType');
 goog.require('goog.math');
 goog.require('ol.Coordinate');
 goog.require('ol.Object');
-goog.require('ol.Projection');
+goog.require('ol.geom.Geometry');
+goog.require('ol.geom.Polygon');
+goog.require('ol.has');
 goog.require('ol.proj');
+goog.require('ol.sphere.WGS84');
 
 
 /**
@@ -18,6 +20,7 @@ goog.require('ol.proj');
  */
 ol.GeolocationProperty = {
   ACCURACY: 'accuracy',
+  ACCURACY_GEOMETRY: 'accuracyGeometry',
   ALTITUDE: 'altitude',
   ALTITUDE_ACCURACY: 'altitudeAccuracy',
   HEADING: 'heading',
@@ -31,22 +34,27 @@ ol.GeolocationProperty = {
 
 
 /**
+ * @classdesc
  * Helper class for providing HTML5 Geolocation capabilities.
- * HTML5 Geolocation is used to locate a user's position.
+ * The [Geolocation API](http://www.w3.org/TR/geolocation-API/)
+ * is used to locate a user's position.
  *
  * Example:
  *
- *     var geolocation = new ol.Geolocation();
- *     // take the projection to use from the map's view
- *     geolocation.bindTo('projection', map.getView());
+ *     var geolocation = new ol.Geolocation({
+ *       // take the projection to use from the map's view
+ *       projection: view.getprojection()
+ *     });
  *     // listen to changes in position
- *     geolocation.on('change:position', function(evt) {
+ *     geolocation.on('change', function(evt) {
  *       window.console.log(geolocation.getPosition());
  *     });
  *
  * @constructor
  * @extends {ol.Object}
- * @param {ol.GeolocationOptions=} opt_options Options.
+ * @fires change Triggered when the position changes.
+ * @param {olx.GeolocationOptions=} opt_options Options.
+ * @api stable
  */
 ol.Geolocation = function(opt_options) {
 
@@ -122,7 +130,7 @@ ol.Geolocation.prototype.handleProjectionChanged_ = function() {
  * @private
  */
 ol.Geolocation.prototype.handleTrackingChanged_ = function() {
-  if (ol.Geolocation.SUPPORTED) {
+  if (ol.has.GEOLOCATION) {
     var tracking = this.getTracking();
     if (tracking && !goog.isDef(this.watchId_)) {
       this.watchId_ = goog.global.navigator.geolocation.watchPosition(
@@ -135,14 +143,6 @@ ol.Geolocation.prototype.handleTrackingChanged_ = function() {
     }
   }
 };
-
-
-/**
- * Is HTML5 geolocation supported in the current browser?
- * @const
- * @type {boolean}
- */
-ol.Geolocation.SUPPORTED = 'geolocation' in goog.global.navigator;
 
 
 /**
@@ -165,9 +165,15 @@ ol.Geolocation.prototype.positionChange_ = function(position) {
     this.position_[0] = coords.longitude;
     this.position_[1] = coords.latitude;
   }
-  this.set(ol.GeolocationProperty.POSITION, this.transform_(this.position_));
+  var projectedPosition = this.transform_(this.position_);
+  this.set(ol.GeolocationProperty.POSITION, projectedPosition);
   this.set(ol.GeolocationProperty.SPEED,
       goog.isNull(coords.speed) ? undefined : coords.speed);
+  var geometry = ol.geom.Polygon.circular(
+      ol.sphere.WGS84, this.position_, coords.accuracy);
+  geometry.applyTransform(this.transform_);
+  this.set(ol.GeolocationProperty.ACCURACY_GEOMETRY, geometry);
+  this.dispatchChangeEvent();
 };
 
 
@@ -183,7 +189,10 @@ ol.Geolocation.prototype.positionError_ = function(error) {
 
 /**
  * Get the accuracy of the position in meters.
- * @return {number|undefined} accuracy in meters.
+ * @return {number|undefined} The accuracy of the position measurement in
+ *     meters.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getAccuracy = function() {
   return /** @type {number|undefined} */ (
@@ -196,8 +205,27 @@ goog.exportProperty(
 
 
 /**
+ * Get a geometry of the position accuracy.
+ * @return {?ol.geom.Geometry} A geometry of the position accuracy.
+ * @observable
+ * @api stable
+ */
+ol.Geolocation.prototype.getAccuracyGeometry = function() {
+  return /** @type {?ol.geom.Geometry} */ (
+      this.get(ol.GeolocationProperty.ACCURACY_GEOMETRY) || null);
+};
+goog.exportProperty(
+    ol.Geolocation.prototype,
+    'getAccuracyGeometry',
+    ol.Geolocation.prototype.getAccuracyGeometry);
+
+
+/**
  * Get the altitude associated with the position.
- * @return {number|undefined} The altitude in meters above the mean sea level.
+ * @return {number|undefined} The altitude of the position in meters above mean
+ *     sea level.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getAltitude = function() {
   return /** @type {number|undefined} */ (
@@ -211,7 +239,10 @@ goog.exportProperty(
 
 /**
  * Get the altitude accuracy of the position.
- * @return {number|undefined} Altitude accuracy.
+ * @return {number|undefined} The accuracy of the altitude measurement in
+ *     meters.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getAltitudeAccuracy = function() {
   return /** @type {number|undefined} */ (
@@ -225,7 +256,9 @@ goog.exportProperty(
 
 /**
  * Get the heading as radians clockwise from North.
- * @return {number|undefined} Heading.
+ * @return {number|undefined} The heading of the device in radians from north.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getHeading = function() {
   return /** @type {number|undefined} */ (
@@ -239,7 +272,10 @@ goog.exportProperty(
 
 /**
  * Get the position of the device.
- * @return {ol.Coordinate|undefined} position.
+ * @return {ol.Coordinate|undefined} The current position of the device reported
+ *     in the current projection.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getPosition = function() {
   return /** @type {ol.Coordinate|undefined} */ (
@@ -253,10 +289,13 @@ goog.exportProperty(
 
 /**
  * Get the projection associated with the position.
- * @return {ol.Projection|undefined} projection.
+ * @return {ol.proj.Projection|undefined} The projection the position is
+ *     reported in.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getProjection = function() {
-  return /** @type {ol.Projection|undefined} */ (
+  return /** @type {ol.proj.Projection|undefined} */ (
       this.get(ol.GeolocationProperty.PROJECTION));
 };
 goog.exportProperty(
@@ -267,7 +306,10 @@ goog.exportProperty(
 
 /**
  * Get the speed in meters per second.
- * @return {number|undefined} Speed.
+ * @return {number|undefined} The instantaneous speed of the device in meters
+ *     per second.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getSpeed = function() {
   return /** @type {number|undefined} */ (
@@ -281,7 +323,9 @@ goog.exportProperty(
 
 /**
  * Are we tracking the user's position?
- * @return {boolean} tracking.
+ * @return {boolean} Whether to track the device's position.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getTracking = function() {
   return /** @type {boolean} */ (
@@ -295,7 +339,12 @@ goog.exportProperty(
 
 /**
  * Get the tracking options.
- * @return {GeolocationPositionOptions|undefined} Tracking options.
+ * @see http://www.w3.org/TR/geolocation-API/#position-options
+ * @return {GeolocationPositionOptions|undefined} PositionOptions as defined by
+ *     the HTML5 Geolocation spec at
+ *     {@link http://www.w3.org/TR/geolocation-API/#position_options_interface}
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.getTrackingOptions = function() {
   return /** @type {GeolocationPositionOptions|undefined} */ (
@@ -309,7 +358,10 @@ goog.exportProperty(
 
 /**
  * Set the projection to use for transforming the coordinates.
- * @param {ol.Projection} projection Projection.
+ * @param {ol.proj.Projection} projection The projection the position is
+ *     reported in.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.setProjection = function(projection) {
   this.set(ol.GeolocationProperty.PROJECTION, projection);
@@ -322,7 +374,9 @@ goog.exportProperty(
 
 /**
  * Enable/disable tracking.
- * @param {boolean} tracking Enable or disable tracking.
+ * @param {boolean} tracking Whether to track the device's position.
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.setTracking = function(tracking) {
   this.set(ol.GeolocationProperty.TRACKING, tracking);
@@ -335,7 +389,12 @@ goog.exportProperty(
 
 /**
  * Set the tracking options.
- * @param {GeolocationPositionOptions} options Tracking options.
+ * @see http://www.w3.org/TR/geolocation-API/#position-options
+ * @param {GeolocationPositionOptions} options PositionOptions as defined by the
+ *     HTML5 Geolocation spec at
+ *     {@link http://www.w3.org/TR/geolocation-API/#position_options_interface}
+ * @observable
+ * @api stable
  */
 ol.Geolocation.prototype.setTrackingOptions = function(options) {
   this.set(ol.GeolocationProperty.TRACKING_OPTIONS, options);

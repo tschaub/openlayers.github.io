@@ -2,7 +2,6 @@ goog.provide('ol.control.ScaleLine');
 goog.provide('ol.control.ScaleLineProperty');
 goog.provide('ol.control.ScaleLineUnits');
 
-goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
@@ -10,12 +9,11 @@ goog.require('goog.events');
 goog.require('goog.math');
 goog.require('goog.style');
 goog.require('ol.Object');
-goog.require('ol.ProjectionUnits');
 goog.require('ol.TransformFunction');
-goog.require('ol.View2DState');
 goog.require('ol.control.Control');
 goog.require('ol.css');
 goog.require('ol.proj');
+goog.require('ol.proj.Units');
 goog.require('ol.sphere.NORMAL');
 
 
@@ -28,7 +26,10 @@ ol.control.ScaleLineProperty = {
 
 
 /**
+ * Units for the scale line. Supported values are `'degrees'`, `'imperial'`,
+ * `'nautical'`, `'metric'`, `'us'`.
  * @enum {string}
+ * @api stable
  */
 ol.control.ScaleLineUnits = {
   DEGREES: 'degrees',
@@ -41,25 +42,22 @@ ol.control.ScaleLineUnits = {
 
 
 /**
- * Create a control to help users estimate distances on a map.
- *
- * Example:
- *
- *     var map = new ol.Map({
- *       controls: ol.control.defaults({}, [
- *         new ol.control.ScaleLine({
- *           units: ol.control.ScaleLineUnits.IMPERIAL
- *         })
- *       ]),
- *       ...
+ * @classdesc
+ * A control displaying rough x-axis distances, calculated for the center of the
+ * viewport.
+ * No scale line will be shown when the x-axis distance cannot be calculated in
+ * the view projection (e.g. at or beyond the poles in EPSG:4326).
+ * By default the scale line will show in the bottom left portion of the map,
+ * but this can be changed by using the css selector `.ol-scale-line`.
  *
  * @constructor
  * @extends {ol.control.Control}
- * @param {ol.control.ScaleLineOptions=} opt_options Scale line options.
+ * @param {olx.control.ScaleLineOptions=} opt_options Scale line options.
+ * @api stable
  */
 ol.control.ScaleLine = function(opt_options) {
 
-  var options = opt_options || {};
+  var options = goog.isDef(opt_options) ? opt_options : {};
 
   var className = goog.isDef(options.className) ?
       options.className : 'ol-scale-line';
@@ -82,9 +80,9 @@ ol.control.ScaleLine = function(opt_options) {
 
   /**
    * @private
-   * @type {?ol.View2DState}
+   * @type {?olx.ViewState}
    */
-  this.view2DState_ = null;
+  this.viewState_ = null;
 
   /**
    * @private
@@ -118,7 +116,6 @@ ol.control.ScaleLine = function(opt_options) {
 
   goog.base(this, {
     element: this.element_,
-    map: options.map,
     target: options.target
   });
 
@@ -126,7 +123,8 @@ ol.control.ScaleLine = function(opt_options) {
       this, ol.Object.getChangeEventType(ol.control.ScaleLineProperty.UNITS),
       this.handleUnitsChanged_, false, this);
 
-  this.setUnits(options.units || ol.control.ScaleLineUnits.METRIC);
+  this.setUnits(/** @type {ol.control.ScaleLineUnits} */ (options.units) ||
+      ol.control.ScaleLineUnits.METRIC);
 
 };
 goog.inherits(ol.control.ScaleLine, ol.control.Control);
@@ -140,7 +138,10 @@ ol.control.ScaleLine.LEADING_DIGITS = [1, 2, 5];
 
 
 /**
- * @return {ol.control.ScaleLineUnits|undefined} units.
+ * @return {ol.control.ScaleLineUnits|undefined} The units to use in the scale
+ *     line.
+ * @observable
+ * @api stable
  */
 ol.control.ScaleLine.prototype.getUnits = function() {
   return /** @type {ol.control.ScaleLineUnits|undefined} */ (
@@ -158,9 +159,9 @@ goog.exportProperty(
 ol.control.ScaleLine.prototype.handleMapPostrender = function(mapEvent) {
   var frameState = mapEvent.frameState;
   if (goog.isNull(frameState)) {
-    this.view2DState_ = null;
+    this.viewState_ = null;
   } else {
-    this.view2DState_ = frameState.view2DState;
+    this.viewState_ = frameState.viewState;
   }
   this.updateElement_();
 };
@@ -175,7 +176,9 @@ ol.control.ScaleLine.prototype.handleUnitsChanged_ = function() {
 
 
 /**
- * @param {ol.control.ScaleLineUnits} units Units.
+ * @param {ol.control.ScaleLineUnits} units The units to use in the scale line.
+ * @observable
+ * @api stable
  */
 ol.control.ScaleLine.prototype.setUnits = function(units) {
   this.set(ol.control.ScaleLineProperty.UNITS, units);
@@ -190,9 +193,9 @@ goog.exportProperty(
  * @private
  */
 ol.control.ScaleLine.prototype.updateElement_ = function() {
-  var view2DState = this.view2DState_;
+  var viewState = this.viewState_;
 
-  if (goog.isNull(view2DState)) {
+  if (goog.isNull(viewState)) {
     if (this.renderedVisible_) {
       goog.style.setElementShown(this.element_, false);
       this.renderedVisible_ = false;
@@ -200,26 +203,28 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
     return;
   }
 
-  var center = view2DState.center;
-  var projection = view2DState.projection;
+  var center = viewState.center;
+  var projection = viewState.projection;
   var pointResolution =
-      projection.getPointResolution(view2DState.resolution, center);
+      projection.getPointResolution(viewState.resolution, center);
   var projectionUnits = projection.getUnits();
 
   var cosLatitude;
   var units = this.getUnits();
-  if (projectionUnits == ol.ProjectionUnits.DEGREES &&
+  if (projectionUnits == ol.proj.Units.DEGREES &&
       (units == ol.control.ScaleLineUnits.METRIC ||
-       units == ol.control.ScaleLineUnits.IMPERIAL)) {
+       units == ol.control.ScaleLineUnits.IMPERIAL ||
+       units == ol.control.ScaleLineUnits.US ||
+       units == ol.control.ScaleLineUnits.NAUTICAL)) {
 
     // Convert pointResolution from degrees to meters
     this.toEPSG4326_ = null;
     cosLatitude = Math.cos(goog.math.toRadians(center[1]));
     pointResolution *= Math.PI * cosLatitude * ol.sphere.NORMAL.radius / 180;
-    projectionUnits = ol.ProjectionUnits.METERS;
+    projectionUnits = ol.proj.Units.METERS;
 
-  } else if ((projectionUnits == ol.ProjectionUnits.FEET ||
-      projectionUnits == ol.ProjectionUnits.METERS) &&
+  } else if ((projectionUnits == ol.proj.Units.FEET ||
+      projectionUnits == ol.proj.Units.METERS) &&
       units == ol.control.ScaleLineUnits.DEGREES) {
 
     // Convert pointResolution from meters or feet to degrees
@@ -229,11 +234,11 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
     }
     cosLatitude = Math.cos(goog.math.toRadians(this.toEPSG4326_(center)[1]));
     var radius = ol.sphere.NORMAL.radius;
-    if (projectionUnits == ol.ProjectionUnits.FEET) {
+    if (projectionUnits == ol.proj.Units.FEET) {
       radius /= 0.3048;
     }
     pointResolution *= 180 / (Math.PI * cosLatitude * radius);
-    projectionUnits = ol.ProjectionUnits.DEGREES;
+    projectionUnits = ol.proj.Units.DEGREES;
 
   } else {
     this.toEPSG4326_ = null;
@@ -241,10 +246,12 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
 
   goog.asserts.assert(
       ((units == ol.control.ScaleLineUnits.METRIC ||
-        units == ol.control.ScaleLineUnits.IMPERIAL) &&
-       projectionUnits == ol.ProjectionUnits.METERS) ||
+        units == ol.control.ScaleLineUnits.IMPERIAL ||
+        units == ol.control.ScaleLineUnits.US ||
+        units == ol.control.ScaleLineUnits.NAUTICAL) &&
+       projectionUnits == ol.proj.Units.METERS) ||
       (units == ol.control.ScaleLineUnits.DEGREES &&
-       projectionUnits == ol.ProjectionUnits.DEGREES));
+       projectionUnits == ol.proj.Units.DEGREES));
 
   var nominalCount = this.minWidth_ * pointResolution;
   var suffix = '';
@@ -304,7 +311,11 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
     count = ol.control.ScaleLine.LEADING_DIGITS[i % 3] *
         Math.pow(10, Math.floor(i / 3));
     width = Math.round(count / pointResolution);
-    if (width >= this.minWidth_) {
+    if (isNaN(width)) {
+      goog.style.setElementShown(this.element_, false);
+      this.renderedVisible_ = false;
+      return;
+    } else if (width >= this.minWidth_) {
       break;
     }
     ++i;

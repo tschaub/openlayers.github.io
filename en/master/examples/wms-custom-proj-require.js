@@ -1,10 +1,9 @@
 goog.require('ol.Attribution');
 goog.require('ol.Map');
-goog.require('ol.RendererHints');
-goog.require('ol.View2D');
+goog.require('ol.View');
+goog.require('ol.control');
 goog.require('ol.control.ScaleLine');
-goog.require('ol.control.ScaleLineUnits');
-goog.require('ol.control.defaults');
-goog.require('ol.layer.TileLayer');
+goog.require('ol.layer.Tile');
 goog.require('ol.proj');
-goog.require('ol.source.TiledWMS');
+goog.require('ol.proj.Projection');
+goog.require('ol.source.TileWMS');

@@ -38,6 +38,25 @@ ol.array.binaryFindNearest = function(arr, target) {
 
 
 /**
+ * Safe version of goog.array.extend that does not risk to overflow the stack
+ * even if `array2` contains a large number of elements.
+ *
+ * @param {Array.<T>} array1 Array 1.
+ * @param {Array.<T>} array2 Array 2.
+ * @template T
+ */
+ol.array.safeExtend = function(array1, array2) {
+  // goog.array.extend uses Array.prototype.push.apply, which can overflow the
+  // stack if array2 contains too many elements.  Repeatedly calling push
+  // performs as well on modern browsers.
+  var i, ii;
+  for (i = 0, ii = array2.length; i < ii; ++i) {
+    array1.push(array2[i]);
+  }
+};
+
+
+/**
  * @param {Array.<number>} arr Array.
  * @param {number} target Target.
  * @param {number} direction 0 means return the nearest, > 0
@@ -82,5 +101,23 @@ ol.array.linearFindNearest = function(arr, target, direction) {
     // if it finds a path for which no number is returned.
     goog.asserts.fail();
     return n - 1;
+  }
+};
+
+
+/**
+ * @param {Array.<*>} arr Array.
+ * @param {number} begin Begin index.
+ * @param {number} end End index.
+ */
+ol.array.reverseSubArray = function(arr, begin, end) {
+  goog.asserts.assert(begin >= 0);
+  goog.asserts.assert(end < arr.length);
+  while (begin < end) {
+    var tmp = arr[begin];
+    arr[begin] = arr[end];
+    arr[end] = tmp;
+    ++begin;
+    --end;
   }
 };

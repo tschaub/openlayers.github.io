@@ -1,5 +1,3 @@
-// FIXME works for View2D only
-
 goog.provide('ol.interaction.DoubleClickZoom');
 
 goog.require('goog.asserts');
@@ -8,17 +6,15 @@ goog.require('ol.MapBrowserEvent.EventType');
 goog.require('ol.interaction.Interaction');
 
 
-/**
- * @define {number} Animation duration.
- */
-ol.interaction.DOUBLECLICKZOOM_ANIMATION_DURATION = 250;
-
-
 
 /**
+ * @classdesc
+ * Allows the user to zoom by double-clicking on the map.
+ *
  * @constructor
  * @extends {ol.interaction.Interaction}
- * @param {ol.interaction.DoubleClickZoomOptions=} opt_options Options.
+ * @param {olx.interaction.DoubleClickZoomOptions=} opt_options Options.
+ * @api stable
  */
 ol.interaction.DoubleClickZoom = function(opt_options) {
 
@@ -32,6 +28,12 @@ ol.interaction.DoubleClickZoom = function(opt_options) {
 
   goog.base(this);
 
+  /**
+   * @private
+   * @type {number}
+   */
+  this.duration_ = goog.isDef(options.duration) ? options.duration : 250;
+
 };
 goog.inherits(ol.interaction.DoubleClickZoom, ol.interaction.Interaction);
 
@@ -43,15 +45,14 @@ ol.interaction.DoubleClickZoom.prototype.handleMapBrowserEvent =
     function(mapBrowserEvent) {
   var stopEvent = false;
   var browserEvent = mapBrowserEvent.browserEvent;
-  if (mapBrowserEvent.type == ol.MapBrowserEvent.EventType.DBLCLICK &&
-      mapBrowserEvent.isMouseActionButton()) {
+  if (mapBrowserEvent.type == ol.MapBrowserEvent.EventType.DBLCLICK) {
     var map = mapBrowserEvent.map;
-    var anchor = mapBrowserEvent.getCoordinate();
+    var anchor = mapBrowserEvent.coordinate;
     var delta = browserEvent.shiftKey ? -this.delta_ : this.delta_;
-    // FIXME works for View2D only
-    var view = map.getView().getView2D();
-    ol.interaction.Interaction.zoomByDelta(map, view, delta, anchor,
-        ol.interaction.DOUBLECLICKZOOM_ANIMATION_DURATION);
+    var view = map.getView();
+    goog.asserts.assert(goog.isDef(view));
+    ol.interaction.Interaction.zoomByDelta(
+        map, view, delta, anchor, this.duration_);
     mapBrowserEvent.preventDefault();
     stopEvent = true;
   }

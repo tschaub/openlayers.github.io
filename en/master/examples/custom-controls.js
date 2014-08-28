@@ -28,7 +28,7 @@ app.RotateNorthControl = function(opt_options) {
   var handleRotateNorth = function(e) {
     // prevent #rotate-north anchor from getting appended to the url
     e.preventDefault();
-    this_.getMap().getView().getView2D().setRotation(0);
+    this_.getMap().getView().setRotation(0);
   };
 
   anchor.addEventListener('click', handleRotateNorth, false);
@@ -40,7 +40,6 @@ app.RotateNorthControl = function(opt_options) {
 
   ol.control.Control.call(this, {
     element: element,
-    map: options.map,
     target: options.target
   });
 
@@ -54,17 +53,21 @@ ol.inherits(app.RotateNorthControl, ol.control.Control);
 
 
 var map = new ol.Map({
-  controls: ol.control.defaults({}, [
+  controls: ol.control.defaults({
+    attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+      collapsible: false
+    })
+  }).extend([
     new app.RotateNorthControl()
   ]),
   layers: [
-    new ol.layer.TileLayer({
+    new ol.layer.Tile({
       source: new ol.source.OSM()
     })
   ],
-  renderers: ol.RendererHints.createFromQueryData(),
+  renderer: exampleNS.getRendererFromQueryString(),
   target: 'map',
-  view: new ol.View2D({
+  view: new ol.View({
     center: [0, 0],
     zoom: 2,
     rotation: 1

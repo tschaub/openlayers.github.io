@@ -6,17 +6,19 @@ goog.require('goog.asserts');
 goog.require('goog.math');
 goog.require('goog.object');
 goog.require('goog.uri.utils');
-goog.require('ol.TileCoord');
 goog.require('ol.TileUrlFunction');
 goog.require('ol.TileUrlFunctionType');
 goog.require('ol.extent');
 goog.require('ol.proj');
-goog.require('ol.source.ImageTileSource');
+goog.require('ol.source.TileImage');
+goog.require('ol.tilecoord');
 goog.require('ol.tilegrid.WMTS');
 
 
 /**
+ * Request encoding. One of 'KVP', 'REST'.
  * @enum {string}
+ * @api
  */
 ol.source.WMTSRequestEncoding = {
   KVP: 'KVP',  // see spec §8
@@ -26,9 +28,13 @@ ol.source.WMTSRequestEncoding = {
 
 
 /**
+ * @classdesc
+ * Layer source for tile data from WMTS servers.
+ *
  * @constructor
- * @extends {ol.source.ImageTileSource}
- * @param {ol.source.WMTSOptions} options WMTS options.
+ * @extends {ol.source.TileImage}
+ * @param {olx.source.WMTSOptions} options WMTS options.
+ * @api
  */
 ol.source.WMTS = function(options) {
 
@@ -36,7 +42,19 @@ ol.source.WMTS = function(options) {
 
   var version = goog.isDef(options.version) ? options.version : '1.0.0';
   var format = goog.isDef(options.format) ? options.format : 'image/jpeg';
-  var dimensions = options.dimensions || {};
+
+  /**
+   * @private
+   * @type {Object}
+   */
+  this.dimensions_ = goog.isDef(options.dimensions) ? options.dimensions : {};
+
+  /**
+   * @private
+   * @type {string}
+   */
+  this.coordKeyPrefix_ = '';
+  this.resetCoordKeyPrefix_();
 
   // FIXME: should we guess this requestEncoding from options.url(s)
   //        structure? that would mean KVP only if a template is not provided.
@@ -53,48 +71,58 @@ ol.source.WMTS = function(options) {
     'Style': options.style,
     'TileMatrixSet': options.matrixSet
   };
-  goog.object.extend(context, dimensions);
-  var kvpParams;
+
   if (requestEncoding == ol.source.WMTSRequestEncoding.KVP) {
-    kvpParams = {
+    goog.object.extend(context, {
       'Service': 'WMTS',
       'Request': 'GetTile',
       'Version': version,
-      'Format': format,
-      'TileMatrix': '{TileMatrix}',
-      'TileRow': '{TileRow}',
-      'TileCol': '{TileCol}'
-    };
-    goog.object.extend(kvpParams, context);
+      'Format': format
+    });
   }
+
+  var dimensions = this.dimensions_;
 
   /**
    * @param {string} template Template.
    * @return {ol.TileUrlFunctionType} Tile URL function.
    */
   function createFromWMTSTemplate(template) {
+
+    // TODO: we may want to create our own appendParams function so that params
+    // order conforms to wmts spec guidance, and so that we can avoid to escape
+    // special template params
+
+    template = (requestEncoding == ol.source.WMTSRequestEncoding.KVP) ?
+        goog.uri.utils.appendParamsFromMap(template, context) :
+        template.replace(/\{(\w+?)\}/g, function(m, p) {
+          return (p in context) ? context[p] : m;
+        });
+
     return (
         /**
          * @param {ol.TileCoord} tileCoord Tile coordinate.
+         * @param {number} pixelRatio Pixel ratio.
+         * @param {ol.proj.Projection} projection Projection.
          * @return {string|undefined} Tile URL.
          */
-        function(tileCoord) {
+        function(tileCoord, pixelRatio, projection) {
           if (goog.isNull(tileCoord)) {
             return undefined;
           } else {
             var localContext = {
-              'TileMatrix': tileGrid.getMatrixId(tileCoord.z),
-              'TileCol': tileCoord.x,
-              'TileRow': tileCoord.y
+              'TileMatrix': tileGrid.getMatrixId(tileCoord[0]),
+              'TileCol': tileCoord[1],
+              'TileRow': tileCoord[2]
             };
-            if (requestEncoding != ol.source.WMTSRequestEncoding.KVP) {
-              goog.object.extend(localContext, context);
-            }
+            goog.object.extend(localContext, dimensions);
             var url = template;
-            for (var key in localContext) {
-              // FIXME: should we filter properties with hasOwnProperty?
-              url = url.replace('{' + key + '}', localContext[key])
-                  .replace('%7B' + key + '%7D', localContext[key]);
+            if (requestEncoding == ol.source.WMTSRequestEncoding.KVP) {
+              url = goog.uri.utils.appendParamsFromMap(url, localContext);
+            } else {
+              url = url.replace(/\{(\w+?)\}/g, function(m, p) {
+                return localContext[p];
+              });
             }
             return url;
           }
@@ -108,70 +136,114 @@ ol.source.WMTS = function(options) {
   }
   if (goog.isDef(urls)) {
     tileUrlFunction = ol.TileUrlFunction.createFromTileUrlFunctions(
-        goog.array.map(urls, function(url) {
-          if (goog.isDef(kvpParams)) {
-            // TODO: we may want to create our own appendParams function
-            // so that params order conforms to wmts spec guidance,
-            // and so that we can avoid to escape special template params
-            url = goog.uri.utils.appendParamsFromMap(url, kvpParams);
-          }
-          return createFromWMTSTemplate(url);
-        }));
+        goog.array.map(urls, createFromWMTSTemplate));
   }
 
   var tmpExtent = ol.extent.createEmpty();
-  var tmpTileCoord = new ol.TileCoord(0, 0, 0);
+  var tmpTileCoord = [0, 0, 0];
   tileUrlFunction = ol.TileUrlFunction.withTileCoordTransform(
-      function(tileCoord, projection) {
-        var tileGrid = this.getTileGrid();
+      /**
+       * @param {ol.TileCoord} tileCoord Tile coordinate.
+       * @param {ol.proj.Projection} projection Projection.
+       * @param {ol.TileCoord=} opt_tileCoord Tile coordinate.
+       * @return {ol.TileCoord} Tile coordinate.
+       */
+      function(tileCoord, projection, opt_tileCoord) {
         goog.asserts.assert(!goog.isNull(tileGrid));
-        if (tileGrid.getResolutions().length <= tileCoord.z) {
+        if (tileGrid.getResolutions().length <= tileCoord[0]) {
           return null;
         }
-        var x = tileCoord.x;
-        var y = -tileCoord.y - 1;
-        var tileExtent = tileGrid.getTileCoordExtent(tileCoord);
-        var projectionExtent = projection.getExtent();
-        var extent = goog.isDef(options.extent) ?
-            options.extent : projectionExtent;
+        var x = tileCoord[1];
+        var y = -tileCoord[2] - 1;
+        var tileExtent = tileGrid.getTileCoordExtent(tileCoord, tmpExtent);
+        var extent = projection.getExtent();
 
-        if (!goog.isNull(extent) && projection.isGlobal() &&
-            extent[0] === projectionExtent[0] &&
-            extent[1] === projectionExtent[1]) {
+        if (!goog.isNull(extent) && projection.isGlobal()) {
           var numCols = Math.ceil(
-              (extent[1] - extent[0]) / (tileExtent[1] - tileExtent[0]));
+              ol.extent.getWidth(extent) /
+              ol.extent.getWidth(tileExtent));
           x = goog.math.modulo(x, numCols);
-          tmpTileCoord.z = tileCoord.z;
-          tmpTileCoord.x = x;
-          tmpTileCoord.y = tileCoord.y;
+          tmpTileCoord[0] = tileCoord[0];
+          tmpTileCoord[1] = x;
+          tmpTileCoord[2] = tileCoord[2];
           tileExtent = tileGrid.getTileCoordExtent(tmpTileCoord, tmpExtent);
         }
-        if (!ol.extent.intersects(tileExtent, extent)) {
+        if (!ol.extent.intersects(tileExtent, extent) ||
+            ol.extent.touches(tileExtent, extent)) {
           return null;
         }
-        return new ol.TileCoord(tileCoord.z, x, y);
+        return ol.tilecoord.createOrUpdate(tileCoord[0], x, y, opt_tileCoord);
       },
       tileUrlFunction);
 
   goog.base(this, {
     attributions: options.attributions,
     crossOrigin: options.crossOrigin,
-    extent: options.extent,
+    logo: options.logo,
     projection: options.projection,
     tileGrid: tileGrid,
+    tileLoadFunction: options.tileLoadFunction,
+    tilePixelRatio: options.tilePixelRatio,
     tileUrlFunction: tileUrlFunction
   });
 
 };
-goog.inherits(ol.source.WMTS, ol.source.ImageTileSource);
+goog.inherits(ol.source.WMTS, ol.source.TileImage);
+
+
+/**
+ * Get the dimensions, i.e. those passed to the constructor through the
+ * "dimensions" option, and possibly updated using the updateDimensions
+ * method.
+ * @return {Object} Dimensions.
+ * @api
+ */
+ol.source.WMTS.prototype.getDimensions = function() {
+  return this.dimensions_;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.source.WMTS.prototype.getKeyZXY = function(z, x, y) {
+  return this.coordKeyPrefix_ + goog.base(this, 'getKeyZXY', z, x, y);
+};
+
+
+/**
+ * @private
+ */
+ol.source.WMTS.prototype.resetCoordKeyPrefix_ = function() {
+  var i = 0;
+  var res = [];
+  for (var key in this.dimensions_) {
+    res[i++] = key + '-' + this.dimensions_[key];
+  }
+  this.coordKeyPrefix_ = res.join('/');
+};
+
+
+/**
+ * Update the dimensions.
+ * @param {Object} dimensions Dimensions.
+ * @api
+ */
+ol.source.WMTS.prototype.updateDimensions = function(dimensions) {
+  goog.object.extend(this.dimensions_, dimensions);
+  this.resetCoordKeyPrefix_();
+  this.dispatchChangeEvent();
+};
 
 
 /**
  * @param {Object} wmtsCap An object representing the capabilities document.
  * @param {string} layer The layer identifier.
- * @return {ol.source.WMTSOptions} WMTS source options object.
+ * @return {olx.source.WMTSOptions} WMTS source options object.
  */
 ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, layer) {
+
+  /* jshint -W069 */
 
   // TODO: add support for TileMatrixLimits
 
@@ -197,7 +269,7 @@ ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, layer) {
     var key = elt['identifier'];
     var value = elt['default'];
     if (goog.isDef(value)) {
-      goog.asserts.assert(goog.array.indexOf(elt['values'], value) >= 0);
+      goog.asserts.assert(goog.array.contains(elt['values'], value));
     } else {
       value = elt['values'][0];
     }
@@ -258,4 +330,7 @@ ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, layer) {
     style: style,
     dimensions: dimensions
   };
+
+  /* jshint +W069 */
+
 };

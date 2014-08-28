@@ -1,15 +1,15 @@
 var map = new ol.Map({
-  interactions: ol.interaction.defaults({}, [
+  interactions: ol.interaction.defaults().extend([
     new ol.interaction.DragRotateAndZoom()
   ]),
   layers: [
-    new ol.layer.TileLayer({
-      source: new ol.source.MapQuestOpenAerial()
+    new ol.layer.Tile({
+      source: new ol.source.MapQuest({layer: 'sat'})
     })
   ],
-  renderers: ol.RendererHints.createFromQueryData(),
+  renderer: exampleNS.getRendererFromQueryString(),
   target: 'map',
-  view: new ol.View2D({
+  view: new ol.View({
     center: [0, 0],
     zoom: 2
   })

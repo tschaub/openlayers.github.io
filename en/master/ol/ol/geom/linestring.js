@@ -1,165 +1,222 @@
 goog.provide('ol.geom.LineString');
 
 goog.require('goog.asserts');
-goog.require('ol.geom.Geometry');
+goog.require('ol.array');
+goog.require('ol.extent');
 goog.require('ol.geom.GeometryType');
-goog.require('ol.geom.SharedVertices');
-goog.require('ol.geom.VertexArray');
+goog.require('ol.geom.SimpleGeometry');
+goog.require('ol.geom.flat.closest');
+goog.require('ol.geom.flat.deflate');
+goog.require('ol.geom.flat.inflate');
+goog.require('ol.geom.flat.interpolate');
+goog.require('ol.geom.flat.length');
+goog.require('ol.geom.flat.simplify');
 
 
 
 /**
+ * @classdesc
+ * Linestring geometry.
+ *
  * @constructor
- * @extends {ol.geom.Geometry}
- * @param {ol.geom.VertexArray} coordinates Vertex array (e.g.
- *    [[x0, y0], [x1, y1]]).
- * @param {ol.geom.SharedVertices=} opt_shared Shared vertices.
+ * @extends {ol.geom.SimpleGeometry}
+ * @param {Array.<ol.Coordinate>} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api stable
  */
-ol.geom.LineString = function(coordinates, opt_shared) {
+ol.geom.LineString = function(coordinates, opt_layout) {
+
   goog.base(this);
-  goog.asserts.assert(goog.isArray(coordinates[0]));
-
-  var vertices = opt_shared,
-      dimension;
-
-  if (!goog.isDef(vertices)) {
-    dimension = coordinates[0].length;
-    vertices = new ol.geom.SharedVertices({dimension: dimension});
-  }
 
   /**
-   * @type {ol.geom.SharedVertices}
-   */
-  this.vertices = vertices;
-
-  /**
-   * @type {number}
    * @private
+   * @type {ol.Coordinate}
    */
-  this.sharedId_ = vertices.add(coordinates);
+  this.flatMidpoint_ = null;
 
   /**
+   * @private
    * @type {number}
    */
-  this.dimension = vertices.getDimension();
-  goog.asserts.assert(this.dimension >= 2);
+  this.flatMidpointRevision_ = -1;
 
   /**
-   * @type {ol.Extent}
    * @private
+   * @type {number}
    */
-  this.bounds_ = null;
+  this.maxDelta_ = -1;
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.maxDeltaRevision_ = -1;
+
+  this.setCoordinates(coordinates,
+      /** @type {ol.geom.GeometryLayout|undefined} */ (opt_layout));
 
 };
-goog.inherits(ol.geom.LineString, ol.geom.Geometry);
+goog.inherits(ol.geom.LineString, ol.geom.SimpleGeometry);
 
 
 /**
- * Get a vertex coordinate value for the given dimension.
- * @param {number} index Vertex index.
- * @param {number} dim Coordinate dimension.
- * @return {number} The vertex coordinate value.
+ * @param {ol.Coordinate} coordinate Coordinate.
+ * @api stable
  */
-ol.geom.LineString.prototype.get = function(index, dim) {
-  return this.vertices.get(this.sharedId_, index, dim);
+ol.geom.LineString.prototype.appendCoordinate = function(coordinate) {
+  goog.asserts.assert(coordinate.length == this.stride);
+  if (goog.isNull(this.flatCoordinates)) {
+    this.flatCoordinates = coordinate.slice();
+  } else {
+    ol.array.safeExtend(this.flatCoordinates, coordinate);
+  }
+  this.dispatchChangeEvent();
+};
+
+
+/**
+ * Make a complete copy of the geometry.
+ * @return {!ol.geom.LineString} Clone.
+ * @api stable
+ */
+ol.geom.LineString.prototype.clone = function() {
+  var lineString = new ol.geom.LineString(null);
+  lineString.setFlatCoordinates(this.layout, this.flatCoordinates.slice());
+  return lineString;
 };
 
 
 /**
  * @inheritDoc
- * @return {ol.geom.VertexArray} Coordinates array.
+ */
+ol.geom.LineString.prototype.closestPointXY =
+    function(x, y, closestPoint, minSquaredDistance) {
+  if (minSquaredDistance <
+      ol.extent.closestSquaredDistanceXY(this.getExtent(), x, y)) {
+    return minSquaredDistance;
+  }
+  if (this.maxDeltaRevision_ != this.getRevision()) {
+    this.maxDelta_ = Math.sqrt(ol.geom.flat.closest.getMaxSquaredDelta(
+        this.flatCoordinates, 0, this.flatCoordinates.length, this.stride, 0));
+    this.maxDeltaRevision_ = this.getRevision();
+  }
+  return ol.geom.flat.closest.getClosestPoint(
+      this.flatCoordinates, 0, this.flatCoordinates.length, this.stride,
+      this.maxDelta_, false, x, y, closestPoint, minSquaredDistance);
+};
+
+
+/**
+ * Returns the coordinate at `m` using linear interpolation, or `null` if no
+ * such coordinate exists.
+ *
+ * `opt_extrapolate` controls extrapolation beyond the range of Ms in the
+ * MultiLineString. If `opt_extrapolate` is `true` then Ms less than the first
+ * M will return the first coordinate and Ms greater than the last M will
+ * return the last coordinate.
+ *
+ * @param {number} m M.
+ * @param {boolean=} opt_extrapolate Extrapolate.
+ * @return {ol.Coordinate} Coordinate.
+ * @api stable
+ */
+ol.geom.LineString.prototype.getCoordinateAtM = function(m, opt_extrapolate) {
+  if (this.layout != ol.geom.GeometryLayout.XYM &&
+      this.layout != ol.geom.GeometryLayout.XYZM) {
+    return null;
+  }
+  var extrapolate = goog.isDef(opt_extrapolate) ? opt_extrapolate : false;
+  return ol.geom.flat.lineStringCoordinateAtM(this.flatCoordinates, 0,
+      this.flatCoordinates.length, this.stride, m, extrapolate);
+};
+
+
+/**
+ * @return {Array.<ol.Coordinate>} Coordinates.
+ * @api stable
  */
 ol.geom.LineString.prototype.getCoordinates = function() {
-  var count = this.getCount();
-  var coordinates = new Array(count);
-  var vertex;
-  for (var i = 0; i < count; ++i) {
-    vertex = new Array(this.dimension);
-    for (var j = 0; j < this.dimension; ++j) {
-      vertex[j] = this.get(i, j);
-    }
-    coordinates[i] = vertex;
-  }
-  return coordinates;
+  return ol.geom.flat.inflate.coordinates(
+      this.flatCoordinates, 0, this.flatCoordinates.length, this.stride);
 };
 
 
 /**
- * Get the count of vertices in this linestring.
- * @return {number} The vertex count.
+ * @return {number} Length (on projected plane).
+ * @api stable
  */
-ol.geom.LineString.prototype.getCount = function() {
-  return this.vertices.getCount(this.sharedId_);
+ol.geom.LineString.prototype.getLength = function() {
+  return ol.geom.flat.length.lineString(
+      this.flatCoordinates, 0, this.flatCoordinates.length, this.stride);
+};
+
+
+/**
+ * @return {Array.<number>} Flat midpoint.
+ */
+ol.geom.LineString.prototype.getFlatMidpoint = function() {
+  if (this.flatMidpointRevision_ != this.getRevision()) {
+    this.flatMidpoint_ = ol.geom.flat.interpolate.lineString(
+        this.flatCoordinates, 0, this.flatCoordinates.length, this.stride,
+        0.5, this.flatMidpoint_);
+    this.flatMidpointRevision_ = this.getRevision();
+  }
+  return this.flatMidpoint_;
 };
 
 
 /**
  * @inheritDoc
  */
-ol.geom.LineString.prototype.getBounds = function() {
-  if (goog.isNull(this.bounds_)) {
-    var dimension = this.dimension,
-        vertices = this.vertices,
-        id = this.sharedId_,
-        count = vertices.getCount(id),
-        start = vertices.getStart(id),
-        end = start + (count * dimension),
-        coordinates = vertices.coordinates,
-        minX, maxX,
-        minY, maxY,
-        x, y, i;
-
-    minX = maxX = coordinates[start];
-    minY = maxY = coordinates[start + 1];
-    for (i = start + dimension; i < end; i += dimension) {
-      x = coordinates[i];
-      y = coordinates[i + 1];
-      if (x < minX) {
-        minX = x;
-      } else if (x > maxX) {
-        maxX = x;
-      }
-      if (y < minY) {
-        minY = y;
-      } else if (y > maxY) {
-        maxY = y;
-      }
-    }
-    this.bounds_ = [minX, maxX, minY, maxY];
-  }
-  return this.bounds_;
+ol.geom.LineString.prototype.getSimplifiedGeometryInternal =
+    function(squaredTolerance) {
+  var simplifiedFlatCoordinates = [];
+  simplifiedFlatCoordinates.length = ol.geom.flat.simplify.douglasPeucker(
+      this.flatCoordinates, 0, this.flatCoordinates.length, this.stride,
+      squaredTolerance, simplifiedFlatCoordinates, 0);
+  var simplifiedLineString = new ol.geom.LineString(null);
+  simplifiedLineString.setFlatCoordinates(
+      ol.geom.GeometryLayout.XY, simplifiedFlatCoordinates);
+  return simplifiedLineString;
 };
 
 
 /**
  * @inheritDoc
+ * @api stable
  */
 ol.geom.LineString.prototype.getType = function() {
-  return ol.geom.GeometryType.LINESTRING;
+  return ol.geom.GeometryType.LINE_STRING;
 };
 
 
 /**
- * Get the identifier used to mark this line in the shared vertices structure.
- * @return {number} The identifier.
+ * @param {Array.<ol.Coordinate>} coordinates Coordinates.
+ * @param {ol.geom.GeometryLayout=} opt_layout Layout.
+ * @api stable
  */
-ol.geom.LineString.prototype.getSharedId = function() {
-  return this.sharedId_;
-};
-
-
-/**
- * Calculate the distance from a coordinate to this linestring.
- *
- * @param {ol.Coordinate} coordinate Coordinate.
- * @return {number} Distance from the coordinate to this linestring.
- */
-ol.geom.LineString.prototype.distanceFromCoordinate = function(coordinate) {
-  var coordinates = this.getCoordinates();
-  var dist2 = Infinity;
-  for (var i = 0, j = 1, len = coordinates.length; j < len; i = j++) {
-    dist2 = Math.min(dist2, ol.geom.squaredDistanceToSegment(coordinate,
-        [coordinates[i], coordinates[j]]));
+ol.geom.LineString.prototype.setCoordinates =
+    function(coordinates, opt_layout) {
+  if (goog.isNull(coordinates)) {
+    this.setFlatCoordinates(ol.geom.GeometryLayout.XY, null);
+  } else {
+    this.setLayout(opt_layout, coordinates, 1);
+    if (goog.isNull(this.flatCoordinates)) {
+      this.flatCoordinates = [];
+    }
+    this.flatCoordinates.length = ol.geom.flat.deflate.coordinates(
+        this.flatCoordinates, 0, coordinates, this.stride);
+    this.dispatchChangeEvent();
   }
-  return Math.sqrt(dist2);
+};
+
+
+/**
+ * @param {ol.geom.GeometryLayout} layout Layout.
+ * @param {Array.<number>} flatCoordinates Flat coordinates.
+ */
+ol.geom.LineString.prototype.setFlatCoordinates =
+    function(layout, flatCoordinates) {
+  this.setFlatCoordinatesInternal(layout, flatCoordinates);
+  this.dispatchChangeEvent();
 };

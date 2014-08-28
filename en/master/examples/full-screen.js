@@ -1,21 +1,21 @@
-var view = new ol.View2D({
+var view = new ol.View({
   center: [-9101767, 2822912],
   zoom: 14
 });
 
 var map = new ol.Map({
-  controls: ol.control.defaults({}, [
+  controls: ol.control.defaults().extend([
     new ol.control.FullScreen()
   ]),
   layers: [
-    new ol.layer.TileLayer({
+    new ol.layer.Tile({
       source: new ol.source.BingMaps({
-        key: 'Ar33pRUvQOdESG8m_T15MUmNz__E1twPo42bFx9jvdDePhX0PNgAcEm44OVTS7tt',
-        style: 'Aerial'
+        key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3',
+        imagerySet: 'Aerial'
       })
     })
   ],
-  renderers: ol.RendererHints.createFromQueryData(),
+  renderer: exampleNS.getRendererFromQueryString(),
   target: 'map',
   view: view
 });

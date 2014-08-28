@@ -1,59 +1,114 @@
-var raster = new ol.layer.TileLayer({
-  source: new ol.source.MapQuestOpenAerial()
-});
-
-// TODO: discuss scale dependent rules
-ol.expr.register('resolution', function() {
-  return map.getView().getView2D().getResolution();
-});
-
-var vector = new ol.layer.Vector({
-  source: new ol.source.Vector({
-    parser: new ol.parser.GeoJSON(),
-    url: 'data/countries.geojson'
+var styleCache = {};
+var vectorLayer = new ol.layer.Vector({
+  source: new ol.source.GeoJSON({
+    projection: 'EPSG:3857',
+    url: 'data/geojson/countries.geojson'
   }),
-  style: new ol.style.Style({rules: [
-    new ol.style.Rule({
-      symbolizers: [
-        new ol.style.Polygon({
-          strokeColor: '#bada55'
+  style: function(feature, resolution) {
+    var text = resolution < 5000 ? feature.get('name') : '';
+    if (!styleCache[text]) {
+      styleCache[text] = [new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 255, 255, 0.6)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: '#319FD3',
+          width: 1
+        }),
+        text: new ol.style.Text({
+          font: '12px Calibri,sans-serif',
+          text: text,
+          fill: new ol.style.Fill({
+            color: '#000'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#fff',
+            width: 3
+          })
         })
-      ]
-    }),
-    new ol.style.Rule({
-      filter: 'resolution() < 5000',
-      symbolizers: [
-        new ol.style.Text({
-          color: '#bada55',
-          text: ol.expr.parse('name'),
-          fontFamily: 'Calibri,sans-serif',
-          fontSize: 12
-        })
-      ]
-    })
-  ]}),
-  transformFeatureInfo: function(features) {
-    return features.length > 0 ?
-        features[0].getFeatureId() + ': ' + features[0].get('name') : '&nbsp;';
+      })];
+    }
+    return styleCache[text];
   }
 });
 
 var map = new ol.Map({
-  layers: [raster, vector],
-  renderer: ol.RendererHint.CANVAS,
+  layers: [
+    new ol.layer.Tile({
+      source: new ol.source.MapQuest({layer: 'sat'})
+    }),
+    vectorLayer
+  ],
   target: 'map',
-  view: new ol.View2D({
+  view: new ol.View({
     center: [0, 0],
     zoom: 1
   })
 });
 
-map.on(['click', 'mousemove'], function(evt) {
-  map.getFeatureInfo({
-    pixel: evt.getPixel(),
-    layers: [vector],
-    success: function(featureInfo) {
-      document.getElementById('info').innerHTML = featureInfo[0];
+var highlightStyleCache = {};
+
+var featureOverlay = new ol.FeatureOverlay({
+  map: map,
+  style: function(feature, resolution) {
+    var text = resolution < 5000 ? feature.get('name') : '';
+    if (!highlightStyleCache[text]) {
+      highlightStyleCache[text] = [new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          color: '#f00',
+          width: 1
+        }),
+        fill: new ol.style.Fill({
+          color: 'rgba(255,0,0,0.1)'
+        }),
+        text: new ol.style.Text({
+          font: '12px Calibri,sans-serif',
+          text: text,
+          fill: new ol.style.Fill({
+            color: '#000'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#f00',
+            width: 3
+          })
+        })
+      })];
     }
+    return highlightStyleCache[text];
+  }
+});
+
+var highlight;
+var displayFeatureInfo = function(pixel) {
+
+  var feature = map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+    return feature;
   });
+
+  var info = document.getElementById('info');
+  if (feature) {
+    info.innerHTML = feature.getId() + ': ' + feature.get('name');
+  } else {
+    info.innerHTML = '&nbsp;';
+  }
+
+  if (feature !== highlight) {
+    if (highlight) {
+      featureOverlay.removeFeature(highlight);
+    }
+    if (feature) {
+      featureOverlay.addFeature(feature);
+    }
+    highlight = feature;
+  }
+
+};
+
+$(map.getViewport()).on('mousemove', function(evt) {
+  var pixel = map.getEventPixel(evt.originalEvent);
+  displayFeatureInfo(pixel);
+});
+
+map.on('click', function(evt) {
+  displayFeatureInfo(evt.pixel);
 });

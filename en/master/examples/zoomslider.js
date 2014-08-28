@@ -7,21 +7,20 @@
 var createMap = function(divId) {
   var source, layer, map, zoomslider, resolutions;
 
-  source = new ol.source.MapQuestOpenAerial();
-  layer = new ol.layer.TileLayer({
+  source = new ol.source.MapQuest({layer: 'sat'});
+  layer = new ol.layer.Tile({
     source: source
   });
   map = new ol.Map({
     layers: [layer],
     target: divId,
-    view: new ol.View2D({
+    view: new ol.View({
       center: [0, 0],
       zoom: 2
     })
   });
-  zoomslider = new ol.control.ZoomSlider({
-    map: map
-  });
+  zoomslider = new ol.control.ZoomSlider();
+  map.addControl(zoomslider);
   return map;
 };
 

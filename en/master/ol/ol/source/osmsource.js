@@ -1,14 +1,19 @@
 goog.provide('ol.source.OSM');
 
+goog.require('ol');
 goog.require('ol.Attribution');
 goog.require('ol.source.XYZ');
 
 
 
 /**
+ * @classdesc
+ * Layer source for the OpenStreetMap tile server.
+ *
  * @constructor
  * @extends {ol.source.XYZ}
- * @param {ol.source.OSMOptions=} opt_options Open Street Map options.
+ * @param {olx.source.OSMOptions=} opt_options Open Street Map options.
+ * @api stable
  */
 ol.source.OSM = function(opt_options) {
 
@@ -17,22 +22,23 @@ ol.source.OSM = function(opt_options) {
   var attributions;
   if (goog.isDef(options.attributions)) {
     attributions = options.attributions;
-  } else if (goog.isDef(options.attribution)) {
-    attributions = [options.attribution];
   } else {
     attributions = ol.source.OSM.ATTRIBUTIONS;
   }
 
-  var maxZoom = goog.isDef(options.maxZoom) ? options.maxZoom : 18;
+  var crossOrigin = goog.isDef(options.crossOrigin) ?
+      options.crossOrigin : 'anonymous';
 
+  var protocol = ol.IS_HTTPS ? 'https:' : 'http:';
   var url = goog.isDef(options.url) ?
-      options.url : 'http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      options.url : protocol + '//{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   goog.base(this, {
     attributions: attributions,
-    crossOrigin: 'anonymous',
+    crossOrigin: crossOrigin,
     opaque: true,
-    maxZoom: maxZoom,
+    maxZoom: goog.isDef(options.maxZoom) ? options.maxZoom : 19,
+    tileLoadFunction: options.tileLoadFunction,
     url: url
   });
 
@@ -43,22 +49,27 @@ goog.inherits(ol.source.OSM, ol.source.XYZ);
 /**
  * @const
  * @type {ol.Attribution}
+ * @api
  */
-ol.source.OSM.DATA_ATTRIBUTION = new ol.Attribution(
-    'Data &copy; <a href="http://www.openstreetmap.org/">OpenStreetMap</a> ' +
-    'contributors, ' +
-    '<a href="http://www.openstreetmap.org/copyright">ODbL</a>');
+ol.source.OSM.DATA_ATTRIBUTION = new ol.Attribution({
+  html: 'Data &copy; ' +
+      '<a href="http://www.openstreetmap.org/">OpenStreetMap</a> ' +
+      'contributors, ' +
+      '<a href="http://www.openstreetmap.org/copyright">ODbL</a>'
+});
 
 
 /**
  * @const
  * @type {ol.Attribution}
+ * @api
  */
-ol.source.OSM.TILE_ATTRIBUTION = new ol.Attribution(
-    'Tiles &copy; ' +
-    '<a href="http://www.openstreetmap.org/">OpenStreetMap</a> ' +
-    'contributors, ' +
-    '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA</a>');
+ol.source.OSM.TILE_ATTRIBUTION = new ol.Attribution({
+  html: 'Tiles &copy; ' +
+      '<a href="http://www.openstreetmap.org/">OpenStreetMap</a> ' +
+      'contributors, ' +
+      '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA</a>'
+});
 
 
 /**

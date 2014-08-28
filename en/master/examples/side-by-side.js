@@ -1,29 +1,34 @@
 var domMap = new ol.Map({
   layers: [
-    new ol.layer.TileLayer({
-      source: new ol.source.MapQuestOpenAerial()
+    new ol.layer.Tile({
+      source: new ol.source.MapQuest({layer: 'sat'})
     })
   ],
-  renderer: ol.RendererHint.DOM,
+  renderer: 'dom',
   target: 'domMap',
-  view: new ol.View2D({
+  view: new ol.View({
     center: [0, 0],
     zoom: 1
   })
 });
 
-
-var webglMap = new ol.Map({
-  renderer: ol.RendererHint.WEBGL,
-  target: 'webglMap'
-});
-webglMap.bindTo('layers', domMap);
-webglMap.bindTo('view', domMap);
-
+if (ol.has.WEBGL) {
+  var webglMap = new ol.Map({
+    renderer: 'webgl',
+    target: 'webglMap'
+  });
+  webglMap.bindTo('layergroup', domMap);
+  webglMap.bindTo('view', domMap);
+} else {
+  var info = document.getElementById('no-webgl');
+  /**
+   * display error message
+   */
+  info.style.display = '';
+}
 
 var canvasMap = new ol.Map({
-  renderer: ol.RendererHint.CANVAS,
   target: 'canvasMap'
 });
-canvasMap.bindTo('layers', domMap);
+canvasMap.bindTo('layergroup', domMap);
 canvasMap.bindTo('view', domMap);

@@ -1,49 +1,35 @@
 goog.provide('ol.layer.Layer');
-goog.provide('ol.layer.LayerProperty');
-goog.provide('ol.layer.LayerState');
 
+goog.require('goog.asserts');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
-goog.require('goog.math');
 goog.require('goog.object');
-goog.require('ol.Object');
+goog.require('ol.layer.Base');
 goog.require('ol.source.Source');
 
 
-/**
- * @enum {string}
- */
-ol.layer.LayerProperty = {
-  BRIGHTNESS: 'brightness',
-  CONTRAST: 'contrast',
-  HUE: 'hue',
-  OPACITY: 'opacity',
-  SATURATION: 'saturation',
-  VISIBLE: 'visible'
-};
-
 
 /**
- * @typedef {{brightness: number,
- *            contrast: number,
- *            hue: number,
- *            opacity: number,
- *            ready: boolean,
- *            saturation: number,
- *            visible: boolean}}
- */
-ol.layer.LayerState;
-
-
-
-/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * A visual representation of raster or vector map data.
+ * Layers group together those properties that pertain to how the data is to be
+ * displayed, irrespective of the source of that data.
+ *
  * @constructor
- * @extends {ol.Object}
- * @param {ol.layer.LayerOptions} options Layer options.
+ * @extends {ol.layer.Base}
+ * @fires ol.render.Event
+ * @fires change Triggered when the state of the source changes.
+ * @param {olx.layer.LayerOptions} options Layer options.
+ * @api stable
  */
 ol.layer.Layer = function(options) {
 
-  goog.base(this);
+  var baseOptions = goog.object.clone(options);
+  delete baseOptions.source;
+
+  goog.base(this, /** @type {olx.layer.LayerOptions} */ (baseOptions));
 
   /**
    * @private
@@ -51,126 +37,50 @@ ol.layer.Layer = function(options) {
    */
   this.source_ = options.source;
 
-  var values = goog.object.clone(options);
-  delete values.source;
-
-  /** @type {number} */
-  values.brightness = goog.isDef(values.brightness) ? values.brightness : 0;
-  /** @type {number} */
-  values.contrast = goog.isDef(values.contrast) ? values.contrast : 1;
-  /** @type {number} */
-  values.hue = goog.isDef(values.hue) ? values.hue : 0;
-  /** @type {number} */
-  values.opacity = goog.isDef(values.opacity) ? values.opacity : 1;
-  /** @type {number} */
-  values.saturation = goog.isDef(values.saturation) ? values.saturation : 1;
-  /** @type {boolean} */
-  values.visible = goog.isDef(values.visible) ? values.visible : true;
-
-  this.setValues(values);
-
-  if (!this.source_.isReady()) {
-    goog.events.listenOnce(this.source_, goog.events.EventType.LOAD,
-        this.handleSourceLoad_, false, this);
-  }
+  goog.events.listen(this.source_, goog.events.EventType.CHANGE,
+      this.handleSourceChange_, false, this);
 
 };
-goog.inherits(ol.layer.Layer, ol.Object);
+goog.inherits(ol.layer.Layer, ol.layer.Base);
 
 
 /**
- * @private
+ * Return `true` if the layer is visible, and if the passed resolution is
+ * between the layer's minResolution and maxResolution. The comparison is
+ * inclusive for `minResolution` and exclusive for `maxResolution`.
+ * @param {ol.layer.LayerState} layerState Layer state.
+ * @param {number} resolution Resolution.
+ * @return {boolean} The layer is visible at the given resolution.
  */
-ol.layer.Layer.prototype.dispatchLoadEvent_ = function() {
-  this.dispatchEvent(goog.events.EventType.LOAD);
+ol.layer.Layer.visibleAtResolution = function(layerState, resolution) {
+  return layerState.visible && resolution >= layerState.minResolution &&
+      resolution < layerState.maxResolution;
 };
 
 
 /**
- * @return {number} Brightness.
+ * @inheritDoc
  */
-ol.layer.Layer.prototype.getBrightness = function() {
-  return /** @type {number} */ (this.get(ol.layer.LayerProperty.BRIGHTNESS));
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'getBrightness',
-    ol.layer.Layer.prototype.getBrightness);
-
-
-/**
- * @return {number} Contrast.
- */
-ol.layer.Layer.prototype.getContrast = function() {
-  return /** @type {number} */ (this.get(ol.layer.LayerProperty.CONTRAST));
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'getContrast',
-    ol.layer.Layer.prototype.getContrast);
-
-
-/**
- * @return {number} Hue.
- */
-ol.layer.Layer.prototype.getHue = function() {
-  return /** @type {number} */ (this.get(ol.layer.LayerProperty.HUE));
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'getHue',
-    ol.layer.Layer.prototype.getHue);
-
-
-/**
- * @return {ol.layer.LayerState} Layer state.
- */
-ol.layer.Layer.prototype.getLayerState = function() {
-  var brightness = this.getBrightness();
-  var contrast = this.getContrast();
-  var hue = this.getHue();
-  var opacity = this.getOpacity();
-  var ready = this.isReady();
-  var saturation = this.getSaturation();
-  var visible = this.getVisible();
-  return {
-    brightness: goog.isDef(brightness) ? goog.math.clamp(brightness, -1, 1) : 0,
-    contrast: goog.isDef(contrast) ? Math.max(contrast, 0) : 1,
-    hue: goog.isDef(hue) ? hue : 0,
-    opacity: goog.isDef(opacity) ? goog.math.clamp(opacity, 0, 1) : 1,
-    ready: ready,
-    saturation: goog.isDef(saturation) ? Math.max(saturation, 0) : 1,
-    visible: goog.isDef(visible) ? !!visible : true
-  };
+ol.layer.Layer.prototype.getLayersArray = function(opt_array) {
+  var array = (goog.isDef(opt_array)) ? opt_array : [];
+  array.push(this);
+  return array;
 };
 
 
 /**
- * @return {number} Opacity.
+ * @inheritDoc
  */
-ol.layer.Layer.prototype.getOpacity = function() {
-  return /** @type {number} */ (this.get(ol.layer.LayerProperty.OPACITY));
+ol.layer.Layer.prototype.getLayerStatesArray = function(opt_states) {
+  var states = (goog.isDef(opt_states)) ? opt_states : [];
+  states.push(this.getLayerState());
+  return states;
 };
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'getOpacity',
-    ol.layer.Layer.prototype.getOpacity);
-
-
-/**
- * @return {number} Saturation.
- */
-ol.layer.Layer.prototype.getSaturation = function() {
-  return /** @type {number} */ (this.get(ol.layer.LayerProperty.SATURATION));
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'getSaturation',
-    ol.layer.Layer.prototype.getSaturation);
 
 
 /**
  * @return {ol.source.Source} Source.
+ * @api stable
  */
 ol.layer.Layer.prototype.getSource = function() {
   return this.source_;
@@ -178,128 +88,16 @@ ol.layer.Layer.prototype.getSource = function() {
 
 
 /**
- * @return {boolean} Visible.
- */
-ol.layer.Layer.prototype.getVisible = function() {
-  return /** @type {boolean} */ (this.get(ol.layer.LayerProperty.VISIBLE));
+  * @inheritDoc
+  */
+ol.layer.Layer.prototype.getSourceState = function() {
+  return this.getSource().getState();
 };
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'getVisible',
-    ol.layer.Layer.prototype.getVisible);
 
 
 /**
  * @private
  */
-ol.layer.Layer.prototype.handleSourceLoad_ = function() {
-  this.dispatchLoadEvent_();
+ol.layer.Layer.prototype.handleSourceChange_ = function() {
+  this.dispatchChangeEvent();
 };
-
-
-/**
- * @return {boolean} Is ready.
- */
-ol.layer.Layer.prototype.isReady = function() {
-  return this.getSource().isReady();
-};
-
-
-/**
- * Adjust the layer brightness.  A value of -1 will render the layer completely
- * black.  A value of 0 will leave the brightness unchanged.  A value of 1 will
- * render the layer completely white.  Other values are linear multipliers on
- * the effect (values are clamped between -1 and 1).
- *
- * The filter effects draft [1] says the brightness function is supposed to
- * render 0 black, 1 unchanged, and all other values as a linear multiplier.
- *
- * The current WebKit implementation clamps values between -1 (black) and 1
- * (white) [2].  There is a bug open to change the filter effect spec [3].
- *
- * TODO: revisit this if the spec is still unmodified before we release
- *
- * [1] https://dvcs.w3.org/hg/FXTF/raw-file/tip/filters/index.html
- * [2] https://github.com/WebKit/webkit/commit/8f4765e569
- * [3] https://www.w3.org/Bugs/Public/show_bug.cgi?id=15647
- *
- * @param {number} brightness Brightness.
- */
-ol.layer.Layer.prototype.setBrightness = function(brightness) {
-  this.set(ol.layer.LayerProperty.BRIGHTNESS, brightness);
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'setBrightness',
-    ol.layer.Layer.prototype.setBrightness);
-
-
-/**
- * Adjust the layer contrast.  A value of 0 will render the layer completely
- * grey.  A value of 1 will leave the contrast unchanged.  Other values are
- * linear multipliers on the effect (and values over 1 are permitted).
- *
- * @param {number} contrast Contrast.
- */
-ol.layer.Layer.prototype.setContrast = function(contrast) {
-  this.set(ol.layer.LayerProperty.CONTRAST, contrast);
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'setContrast',
-    ol.layer.Layer.prototype.setContrast);
-
-
-/**
- * Apply a hue-rotation to the layer.  A value of 0 will leave the hue
- * unchanged.  Other values are radians around the color circle.
- * @param {number} hue Hue.
- */
-ol.layer.Layer.prototype.setHue = function(hue) {
-  this.set(ol.layer.LayerProperty.HUE, hue);
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'setHue',
-    ol.layer.Layer.prototype.setHue);
-
-
-/**
- * @param {number} opacity Opacity.
- */
-ol.layer.Layer.prototype.setOpacity = function(opacity) {
-  this.set(ol.layer.LayerProperty.OPACITY, opacity);
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'setOpacity',
-    ol.layer.Layer.prototype.setOpacity);
-
-
-/**
- * Adjust layer saturation.  A value of 0 will render the layer completely
- * unsaturated.  A value of 1 will leave the saturation unchanged.  Other
- * values are linear multipliers of the effect (and values over 1 are
- * permitted).
- *
- * @param {number} saturation Saturation.
- */
-ol.layer.Layer.prototype.setSaturation = function(saturation) {
-  this.set(ol.layer.LayerProperty.SATURATION, saturation);
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'setSaturation',
-    ol.layer.Layer.prototype.setSaturation);
-
-
-/**
- * @param {boolean} visible Visible.
- */
-ol.layer.Layer.prototype.setVisible = function(visible) {
-  this.set(ol.layer.LayerProperty.VISIBLE, visible);
-};
-goog.exportProperty(
-    ol.layer.Layer.prototype,
-    'setVisible',
-    ol.layer.Layer.prototype.setVisible);
