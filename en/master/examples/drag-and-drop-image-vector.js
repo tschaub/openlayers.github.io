@@ -84,7 +84,7 @@ var map = new ol.Map({
       })
     })
   ],
-  renderer: exampleNS.getRendererFromQueryString(),
+  renderer: common.getRendererFromQueryString(),
   target: 'map',
   view: new ol.View({
     center: [0, 0],
@@ -94,17 +94,15 @@ var map = new ol.Map({
 
 dragAndDropInteraction.on('addfeatures', function(event) {
   var vectorSource = new ol.source.Vector({
-    features: event.features,
-    projection: event.projection
+    features: event.features
   });
-  map.getLayers().push(new ol.layer.Image({
+  map.addLayer(new ol.layer.Image({
     source: new ol.source.ImageVector({
       source: vectorSource,
       style: styleFunction
     })
   }));
-  var view = map.getView();
-  view.fitExtent(
+  map.getView().fit(
       vectorSource.getExtent(), /** @type {ol.Size} */ (map.getSize()));
 });
 
@@ -125,7 +123,10 @@ var displayFeatureInfo = function(pixel) {
   }
 };
 
-$(map.getViewport()).on('mousemove', function(evt) {
+map.on('pointermove', function(evt) {
+  if (evt.dragging) {
+    return;
+  }
   var pixel = map.getEventPixel(evt.originalEvent);
   displayFeatureInfo(pixel);
 });

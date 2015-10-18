@@ -1,7 +1,9 @@
 goog.provide('ol.interaction.PinchZoom');
 
 goog.require('goog.asserts');
+goog.require('goog.functions');
 goog.require('goog.style');
+goog.require('ol');
 goog.require('ol.Coordinate');
 goog.require('ol.ViewHint');
 goog.require('ol.interaction.Interaction');
@@ -21,9 +23,13 @@ goog.require('ol.interaction.Pointer');
  */
 ol.interaction.PinchZoom = function(opt_options) {
 
-  var options = goog.isDef(opt_options) ? opt_options : {};
+  goog.base(this, {
+    handleDownEvent: ol.interaction.PinchZoom.handleDownEvent_,
+    handleDragEvent: ol.interaction.PinchZoom.handleDragEvent_,
+    handleUpEvent: ol.interaction.PinchZoom.handleUpEvent_
+  });
 
-  goog.base(this);
+  var options = opt_options ? opt_options : {};
 
   /**
    * @private
@@ -35,7 +41,7 @@ ol.interaction.PinchZoom = function(opt_options) {
    * @private
    * @type {number}
    */
-  this.duration_ = goog.isDef(options.duration) ? options.duration : 400;
+  this.duration_ = options.duration !== undefined ? options.duration : 400;
 
   /**
    * @private
@@ -54,11 +60,13 @@ goog.inherits(ol.interaction.PinchZoom, ol.interaction.Pointer);
 
 
 /**
- * @inheritDoc
+ * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
+ * @this {ol.interaction.PinchZoom}
+ * @private
  */
-ol.interaction.PinchZoom.prototype.handlePointerDrag =
-    function(mapBrowserEvent) {
-  goog.asserts.assert(this.targetPointers.length >= 2);
+ol.interaction.PinchZoom.handleDragEvent_ = function(mapBrowserEvent) {
+  goog.asserts.assert(this.targetPointers.length >= 2,
+      'length of this.targetPointers should be 2 or more');
   var scaleDelta = 1.0;
 
   var touch0 = this.targetPointers[0];
@@ -69,7 +77,7 @@ ol.interaction.PinchZoom.prototype.handlePointerDrag =
   // distance between touches
   var distance = Math.sqrt(dx * dx + dy * dy);
 
-  if (goog.isDef(this.lastDistance_)) {
+  if (this.lastDistance_ !== undefined) {
     scaleDelta = this.lastDistance_ / distance;
   }
   this.lastDistance_ = distance;
@@ -79,7 +87,7 @@ ol.interaction.PinchZoom.prototype.handlePointerDrag =
 
   var map = mapBrowserEvent.map;
   var view = map.getView();
-  var viewState = view.getState();
+  var resolution = view.getResolution();
 
   // scale anchor point.
   var viewportPosition = goog.style.getClientPosition(map.getViewport());
@@ -92,26 +100,28 @@ ol.interaction.PinchZoom.prototype.handlePointerDrag =
   // scale, bypass the resolution constraint
   map.render();
   ol.interaction.Interaction.zoomWithoutConstraints(
-      map, view, viewState.resolution * scaleDelta, this.anchor_);
+      map, view, resolution * scaleDelta, this.anchor_);
 
 };
 
 
 /**
- * @inheritDoc
+ * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
+ * @return {boolean} Stop drag sequence?
+ * @this {ol.interaction.PinchZoom}
+ * @private
  */
-ol.interaction.PinchZoom.prototype.handlePointerUp =
-    function(mapBrowserEvent) {
+ol.interaction.PinchZoom.handleUpEvent_ = function(mapBrowserEvent) {
   if (this.targetPointers.length < 2) {
     var map = mapBrowserEvent.map;
     var view = map.getView();
     view.setHint(ol.ViewHint.INTERACTING, -1);
-    var viewState = view.getState();
+    var resolution = view.getResolution();
     // Zoom to final resolution, with an animation, and provide a
     // direction not to zoom out/in if user was pinching in/out.
     // Direction is > 0 if pinching out, and < 0 if pinching in.
     var direction = this.lastScaleDelta_ - 1;
-    ol.interaction.Interaction.zoom(map, view, viewState.resolution,
+    ol.interaction.Interaction.zoom(map, view, resolution,
         this.anchor_, this.duration_, direction);
     return false;
   } else {
@@ -121,10 +131,12 @@ ol.interaction.PinchZoom.prototype.handlePointerUp =
 
 
 /**
- * @inheritDoc
+ * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
+ * @return {boolean} Start drag sequence?
+ * @this {ol.interaction.PinchZoom}
+ * @private
  */
-ol.interaction.PinchZoom.prototype.handlePointerDown =
-    function(mapBrowserEvent) {
+ol.interaction.PinchZoom.handleDownEvent_ = function(mapBrowserEvent) {
   if (this.targetPointers.length >= 2) {
     var map = mapBrowserEvent.map;
     this.anchor_ = null;
@@ -139,3 +151,9 @@ ol.interaction.PinchZoom.prototype.handlePointerDown =
     return false;
   }
 };
+
+
+/**
+ * @inheritDoc
+ */
+ol.interaction.PinchZoom.prototype.shouldStopEvent = goog.functions.FALSE;

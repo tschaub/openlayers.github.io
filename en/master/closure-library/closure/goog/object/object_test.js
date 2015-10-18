@@ -18,6 +18,7 @@ goog.setTestOnly('goog.objectTest');
 goog.require('goog.functions');
 goog.require('goog.object');
 goog.require('goog.testing.jsunit');
+goog.require('goog.testing.recordFunction');
 
 function stringifyObject(m) {
   var keys = goog.object.getKeys(m);
@@ -145,6 +146,18 @@ function testUnsafeCloneObjectThatHasACloneMethod() {
   var clone = goog.object.unsafeClone(original);
   assertEquals('original', original.name);
   assertEquals('clone', clone.name);
+}
+
+function testUnsafeCloneObjectThatHasACloneNonMethod() {
+  var originalIndex = {
+    red: [0, 4],
+    clone: [1, 3, 5, 7],
+    yellow: [2, 6]
+  };
+
+  var clone = goog.object.unsafeClone(originalIndex);
+  assertArrayEquals([1, 3, 5, 7], originalIndex.clone);
+  assertArrayEquals([1, 3, 5, 7], clone.clone);
 }
 
 function testUnsafeCloneFlatObject() {
@@ -279,6 +292,39 @@ function testSetDefault() {
   assertEquals(1, dict['a']);
   assertEquals(1, goog.object.setIfUndefined(dict, 'a', 2));
   assertEquals(1, dict['a']);
+}
+
+function createRecordedGetFoo() {
+  return goog.testing.recordFunction(goog.functions.constant('foo'));
+}
+
+function testSetWithReturnValueNotSet_KeyIsSet() {
+  var f = createRecordedGetFoo();
+  var obj = {};
+  obj['key'] = 'bar';
+  assertEquals(
+      'bar',
+      goog.object.setWithReturnValueIfNotSet(obj, 'key', f));
+  f.assertCallCount(0);
+}
+
+function testSetWithReturnValueNotSet_KeyIsNotSet() {
+  var f = createRecordedGetFoo();
+  var obj = {};
+  assertEquals(
+      'foo',
+      goog.object.setWithReturnValueIfNotSet(obj, 'key', f));
+  f.assertCallCount(1);
+}
+
+function testSetWithReturnValueNotSet_KeySetValueIsUndefined() {
+  var f = createRecordedGetFoo();
+  var obj = {};
+  obj['key'] = undefined;
+  assertEquals(
+      undefined,
+      goog.object.setWithReturnValueIfNotSet(obj, 'key', f));
+  f.assertCallCount(0);
 }
 
 function testTranspose() {
@@ -473,4 +519,24 @@ function testImmutableViewStrict() {
   assertThrows(function() {
     y.propB = 4;
   });
+}
+
+function testEmptyObjectsAreEqual() {
+  assertTrue(goog.object.equals({}, {}));
+}
+
+function testObjectsWithDifferentKeysAreUnequal() {
+  assertFalse(goog.object.equals({'a': 1}, {'b': 1}));
+}
+
+function testObjectsWithDifferentValuesAreUnequal() {
+  assertFalse(goog.object.equals({'a': 1}, {'a': 2}));
+}
+
+function testObjectsWithSameKeysAndValuesAreEqual() {
+  assertTrue(goog.object.equals({'a': 1}, {'a': 1}));
+}
+
+function testObjectsWithSameKeysInDifferentOrderAreEqual() {
+  assertTrue(goog.object.equals({'a': 1, 'b': 2}, {'b': 2, 'a': 1}));
 }

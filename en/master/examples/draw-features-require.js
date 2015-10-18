@@ -1,6 +1,6 @@
 goog.require('ol.Map');
 goog.require('ol.View');
-goog.require('ol.interaction');
+goog.require('ol.geom.Polygon');
 goog.require('ol.interaction.Draw');
 goog.require('ol.layer.Tile');
 goog.require('ol.layer.Vector');

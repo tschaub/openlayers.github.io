@@ -18,10 +18,11 @@
  * in [0, 255].
  *
  * @author doughtie@google.com (Gavin Doughtie)
- * @author fschneider@google.com (Fritz Schneider)
  */
 
 goog.provide('goog.crypt.base64');
+
+goog.require('goog.asserts');
 goog.require('goog.crypt');
 goog.require('goog.userAgent');
 
@@ -104,16 +105,17 @@ goog.crypt.base64.HAS_NATIVE_SUPPORT = goog.userAgent.GECKO ||
 /**
  * Base64-encode an array of bytes.
  *
- * @param {Array.<number>|Uint8Array} input An array of bytes (numbers with
+ * @param {Array<number>|Uint8Array} input An array of bytes (numbers with
  *     value in [0, 255]) to encode.
  * @param {boolean=} opt_webSafe Boolean indicating we should use the
  *     alternative alphabet.
  * @return {string} The base64 encoded string.
  */
 goog.crypt.base64.encodeByteArray = function(input, opt_webSafe) {
-  if (!goog.isArrayLike(input)) {
-    throw Error('encodeByteArray takes an array as a parameter');
-  }
+  // Assert avoids runtime dependency on goog.isArrayLike, which helps reduce
+  // size of jscompiler output, and which yields slight performance increase.
+  goog.asserts.assert(goog.isArrayLike(input),
+                      'encodeByteArray takes an array as a parameter');
 
   goog.crypt.base64.init_();
 
@@ -204,7 +206,7 @@ goog.crypt.base64.decodeString = function(input, opt_webSafe) {
  *
  * @param {string} input Input to decode.
  * @param {boolean=} opt_webSafe True if we should use the web-safe alphabet.
- * @return {!Array} bytes representing the decoded value.
+ * @return {!Array<number>} bytes representing the decoded value.
  */
 goog.crypt.base64.decodeStringToByteArray = function(input, opt_webSafe) {
   goog.crypt.base64.init_();
@@ -274,6 +276,14 @@ goog.crypt.base64.init_ = function() {
           goog.crypt.base64.ENCODED_VALS_WEBSAFE.charAt(i);
       goog.crypt.base64.charToByteMapWebSafe_[
           goog.crypt.base64.byteToCharMapWebSafe_[i]] = i;
+
+      // Be forgiving when decoding and correctly decode both encodings.
+      if (i >= goog.crypt.base64.ENCODED_VALS_BASE.length) {
+        goog.crypt.base64.charToByteMap_[
+            goog.crypt.base64.ENCODED_VALS_WEBSAFE.charAt(i)] = i;
+        goog.crypt.base64.charToByteMapWebSafe_[
+            goog.crypt.base64.ENCODED_VALS.charAt(i)] = i;
+      }
     }
   }
 };

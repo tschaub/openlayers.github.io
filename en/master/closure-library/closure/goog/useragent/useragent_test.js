@@ -16,6 +16,7 @@ goog.provide('goog.userAgentTest');
 goog.setTestOnly('goog.userAgentTest');
 
 goog.require('goog.array');
+goog.require('goog.labs.userAgent.platform');
 goog.require('goog.labs.userAgent.testAgents');
 goog.require('goog.labs.userAgent.util');
 goog.require('goog.testing.PropertyReplacer');
@@ -36,11 +37,13 @@ var UserAgents = {
   GECKO: 'GECKO',
   IE: 'IE',
   OPERA: 'OPERA',
-  WEBKIT: 'WEBKIT'
+  WEBKIT: 'WEBKIT',
+  EDGE: 'EDGE'
 };
 
 
 function tearDown() {
+  goog.labs.userAgent.util.setUserAgent(null);
   documentMode = undefined;
   propertyReplacer.reset();
 }
@@ -48,7 +51,7 @@ function tearDown() {
 
 /**
  * Test browser detection for a user agent configuration.
- * @param {Array.<number>} expectedAgents Array of expected userAgents.
+ * @param {Array<number>} expectedAgents Array of expected userAgents.
  * @param {string} uaString User agent string.
  * @param {string=} opt_product Navigator product string.
  * @param {string=} opt_vendor Navigator vendor string.
@@ -214,6 +217,12 @@ function testDocumentModeInStandardsMode() {
   assertEquals(expectedMode, goog.userAgent.DOCUMENT_MODE);
 }
 
+function testEdge() {
+  var testAgents = goog.labs.userAgent.testAgents;
+  assertEdge(testAgents.EDGE_12_0, '12.0');
+  assertEdge(testAgents.EDGE_12_9600, '12.9600');
+}
+
 function testOpera() {
   var assertOpera = function(uaString) {
     assertUserAgent([UserAgents.OPERA], uaString);
@@ -256,8 +265,27 @@ function testNoNavigator() {
       goog.userAgent.VERSION);
 }
 
+function testLegacyChromeOsAndLinux() {
+  // As a legacy behavior, goog.userAgent.LINUX considers
+  // ChromeOS to be Linux.
+  // goog.labs.userAgent.platform.isLinux() does not.
+  goog.labs.userAgent.util.setUserAgent(
+      goog.labs.userAgent.testAgents.CHROME_OS);
+  goog.userAgentTestUtil.reinitializeUserAgent();
+  assertTrue(goog.userAgent.LINUX);
+  assertFalse(goog.labs.userAgent.platform.isLinux());
+}
+
 function assertIe(uaString, expectedVersion) {
   assertUserAgent([UserAgents.IE], uaString);
+  assertEquals('User agent ' + uaString + ' should have had version ' +
+      expectedVersion + ' but had ' + goog.userAgent.VERSION,
+      expectedVersion,
+      goog.userAgent.VERSION);
+}
+
+function assertEdge(uaString, expectedVersion) {
+  assertUserAgent([UserAgents.EDGE], uaString);
   assertEquals('User agent ' + uaString + ' should have had version ' +
       expectedVersion + ' but had ' + goog.userAgent.VERSION,
       expectedVersion,

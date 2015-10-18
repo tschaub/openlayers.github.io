@@ -24,7 +24,6 @@
  * Tested and verified to work in Gecko 1.9.2+ and WebKit 528+.
  *
  * @author eae@google.com (Emil A Eklund)
- * @author slightlyoff@google.com (Alex Russell)
  * @see ../demos/css3button.html
  */
 
@@ -96,7 +95,8 @@ goog.ui.Css3ButtonRenderer.prototype.createDom = function(control) {
     'class': goog.ui.INLINE_BLOCK_CLASSNAME + ' ' + classNames.join(' '),
     'title': button.getTooltip() || ''
   };
-  return button.getDomHelper().createDom('div', attr, button.getContent());
+  return button.getDomHelper().createDom(goog.dom.TagName.DIV, attr,
+                                         button.getContent());
 };
 
 

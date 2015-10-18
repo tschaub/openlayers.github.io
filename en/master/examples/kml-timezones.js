@@ -34,10 +34,11 @@ var styleFunction = function(feature, resolution) {
 };
 
 var vector = new ol.layer.Vector({
-  source: new ol.source.KML({
-    extractStyles: false,
-    projection: 'EPSG:3857',
-    url: 'data/kml/timezones.kml'
+  source: new ol.source.Vector({
+    url: 'data/kml/timezones.kml',
+    format: new ol.format.KML({
+      extractStyles: false
+    })
   }),
   style: styleFunction
 });
@@ -81,7 +82,11 @@ var displayFeatureInfo = function(pixel) {
   }
 };
 
-$(map.getViewport()).on('mousemove', function(evt) {
+map.on('pointermove', function(evt) {
+  if (evt.dragging) {
+    info.tooltip('hide');
+    return;
+  }
   displayFeatureInfo(map.getEventPixel(evt.originalEvent));
 });
 

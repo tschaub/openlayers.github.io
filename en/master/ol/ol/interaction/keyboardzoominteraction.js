@@ -27,38 +27,45 @@ goog.require('ol.interaction.Interaction');
  */
 ol.interaction.KeyboardZoom = function(opt_options) {
 
-  goog.base(this);
+  goog.base(this, {
+    handleEvent: ol.interaction.KeyboardZoom.handleEvent
+  });
 
-  var options = goog.isDef(opt_options) ? opt_options : {};
+  var options = opt_options ? opt_options : {};
 
   /**
    * @private
    * @type {ol.events.ConditionType}
    */
-  this.condition_ = goog.isDef(options.condition) ? options.condition :
+  this.condition_ = options.condition ? options.condition :
           ol.events.condition.targetNotEditable;
 
   /**
    * @private
    * @type {number}
    */
-  this.delta_ = goog.isDef(options.delta) ? options.delta : 1;
+  this.delta_ = options.delta ? options.delta : 1;
 
   /**
    * @private
    * @type {number}
    */
-  this.duration_ = goog.isDef(options.duration) ? options.duration : 100;
+  this.duration_ = options.duration !== undefined ? options.duration : 100;
 
 };
 goog.inherits(ol.interaction.KeyboardZoom, ol.interaction.Interaction);
 
 
 /**
- * @inheritDoc
+ * Handles the {@link ol.MapBrowserEvent map browser event} if it was a
+ * `KeyEvent`, and decides whether to zoom in or out (depending on whether the
+ * key pressed was '+' or '-').
+ * @param {ol.MapBrowserEvent} mapBrowserEvent Map browser event.
+ * @return {boolean} `false` to stop event propagation.
+ * @this {ol.interaction.KeyboardZoom}
+ * @api
  */
-ol.interaction.KeyboardZoom.prototype.handleMapBrowserEvent =
-    function(mapBrowserEvent) {
+ol.interaction.KeyboardZoom.handleEvent = function(mapBrowserEvent) {
   var stopEvent = false;
   if (mapBrowserEvent.type == goog.events.KeyHandler.EventType.KEY) {
     var keyEvent = /** @type {goog.events.KeyEvent} */
@@ -70,7 +77,7 @@ ol.interaction.KeyboardZoom.prototype.handleMapBrowserEvent =
       var delta = (charCode == '+'.charCodeAt(0)) ? this.delta_ : -this.delta_;
       map.render();
       var view = map.getView();
-      goog.asserts.assert(goog.isDef(view));
+      goog.asserts.assert(view, 'map must have view');
       ol.interaction.Interaction.zoomByDelta(
           map, view, delta, undefined, this.duration_);
       mapBrowserEvent.preventDefault();

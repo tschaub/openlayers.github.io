@@ -1,6 +1,5 @@
 goog.provide('ol.TileCache');
 
-goog.require('goog.asserts');
 goog.require('ol');
 goog.require('ol.TileRange');
 goog.require('ol.structs.LRUCache');
@@ -22,7 +21,7 @@ ol.TileCache = function(opt_highWaterMark) {
    * @private
    * @type {number}
    */
-  this.highWaterMark_ = goog.isDef(opt_highWaterMark) ?
+  this.highWaterMark_ = opt_highWaterMark !== undefined ?
       opt_highWaterMark : ol.DEFAULT_TILE_CACHE_HIGH_WATER_MARK;
 
 };
@@ -43,7 +42,7 @@ ol.TileCache.prototype.canExpireCache = function() {
 ol.TileCache.prototype.expireCache = function(usedTiles) {
   var tile, zKey;
   while (this.canExpireCache()) {
-    tile = /** @type {ol.Tile} */ (this.peekLast());
+    tile = this.peekLast();
     zKey = tile.tileCoord[0].toString();
     if (zKey in usedTiles && usedTiles[zKey].contains(tile.tileCoord)) {
       break;

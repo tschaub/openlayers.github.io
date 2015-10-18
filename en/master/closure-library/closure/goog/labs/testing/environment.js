@@ -15,6 +15,8 @@
 goog.provide('goog.labs.testing.Environment');
 
 goog.require('goog.array');
+goog.require('goog.asserts');
+goog.require('goog.debug.Console');
 goog.require('goog.testing.MockClock');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.TestCase');
@@ -34,8 +36,12 @@ goog.require('goog.testing.jsunit');
 goog.labs.testing.Environment = goog.defineClass(null, {
   /** @constructor */
   constructor: function() {
-    goog.labs.testing.EnvironmentTestCase_.getInstance().
-        registerEnvironment_(this);
+    var testcase = goog.labs.testing.EnvironmentTestCase_.getInstance();
+    testcase.registerEnvironment_(this);
+
+    // Record the active test case, in normal usage this is a singleton,
+    // but while testing this case it is reset.
+    goog.labs.testing.Environment.activeTestCase_ = testcase;
 
     /** @type {goog.testing.MockControl} */
     this.mockControl = null;
@@ -48,27 +54,30 @@ goog.labs.testing.Environment = goog.defineClass(null, {
 
     /** @private {boolean} */
     this.shouldMakeMockClock_ = false;
+
+    /** @const {!goog.debug.Console} */
+    this.console = goog.labs.testing.Environment.console_;
   },
 
 
   /** Runs immediately before the setUpPage phase of JsUnit tests. */
-  setUpPage: goog.nullFunction,
-
-
-  /** Runs immediately after the tearDownPage phase of JsUnit tests. */
-  tearDownPage: goog.nullFunction,
-
-
-  /** Runs immediately before the setUp phase of JsUnit tests. */
-  setUp: function() {
-    if (this.shouldMakeMockClock_) {
+  setUpPage: function() {
+    if (this.mockClock && this.mockClock.isDisposed()) {
       this.mockClock = new goog.testing.MockClock(true);
-    }
-    if (this.shouldMakeMockControl_) {
-      this.mockControl = new goog.testing.MockControl();
     }
   },
 
+
+  /** Runs immediately after the tearDownPage phase of JsUnit tests. */
+  tearDownPage: function() {
+    // If we created the mockClock, we'll also dispose it.
+    if (this.shouldMakeMockClock_) {
+      this.mockClock.dispose();
+    }
+  },
+
+  /** Runs immediately before the setUp phase of JsUnit tests. */
+  setUp: goog.nullFunction,
 
   /** Runs immediately after the tearDown phase of JsUnit tests. */
   tearDown: function() {
@@ -78,18 +87,30 @@ goog.labs.testing.Environment = goog.defineClass(null, {
       for (var i = 0; i < 100; i++) {
         this.mockClock.tick(1000);
       }
-      // If we created the mockClock, we'll also dispose it.
+      // If we created the mockClock, we'll also reset it.
       if (this.shouldMakeMockClock_) {
-        this.mockClock.dispose();
+        this.mockClock.reset();
       }
     }
-    // Make sure the user did not forget to call $verifyAll in their test.
-    // This is a noop if they did.
+    // Make sure the user did not forget to call $replayAll & $verifyAll in
+    // their test. This is a noop if they did.
+    // This is important because:
+    // - Engineers thinks that not all their tests need to replay and verify.
+    //   That lets tests sneak in that call mocks but never replay those calls.
+    // - Then some well meaning maintenance engineer wants to update the test
+    //   with some new mock, adds a replayAll and BOOM the test fails
+    //   because completely unrelated mocks now get replayed.
     if (this.mockControl) {
-      this.mockControl.$verifyAll();
-      // If we created the mockControl, we'll also tear it down.
-      if (this.shouldMakeMockControl_) {
-        this.mockControl.$tearDown();
+      try {
+        this.mockControl.$verifyAll();
+        this.mockControl.$replayAll();
+        this.mockControl.$verifyAll();
+      } finally {
+        this.mockControl.$resetAll();
+        if (this.shouldMakeMockControl_) {
+          // If we created the mockControl, we'll also tear it down.
+          this.mockControl.$tearDown();
+        }
       }
     }
     // Verifying the mockControl may throw, so if cleanup needs to happen,
@@ -101,10 +122,13 @@ goog.labs.testing.Environment = goog.defineClass(null, {
    * Create a new {@see goog.testing.MockControl} accessible via
    * {@code env.mockControl} for each test. If your test has more than one
    * testing environment, don't call this on more than one of them.
-   * @return {goog.labs.testing.Environment} For chaining.
+   * @return {!goog.labs.testing.Environment} For chaining.
    */
   withMockControl: function() {
-    this.shouldMakeMockControl_ = true;
+    if (!this.shouldMakeMockControl_) {
+      this.shouldMakeMockControl_ = true;
+      this.mockControl = new goog.testing.MockControl();
+    }
     return this;
   },
 
@@ -114,13 +138,55 @@ goog.labs.testing.Environment = goog.defineClass(null, {
    * installed (override i.e. setTimeout) by default. It can be accessed
    * using {@code env.mockClock}. If your test has more than one testing
    * environment, don't call this on more than one of them.
-   * @return {goog.labs.testing.Environment} For chaining.
+   * @return {!goog.labs.testing.Environment} For chaining.
    */
   withMockClock: function() {
-    this.shouldMakeMockClock_ = true;
+    if (!this.shouldMakeMockClock_) {
+      this.shouldMakeMockClock_ = true;
+      this.mockClock = new goog.testing.MockClock(true);
+    }
     return this;
+  },
+
+
+  /**
+   * Creates a basic strict mock of a {@code toMock}. For more advanced mocking,
+   * please use the MockControl directly.
+   * @param {Function} toMock
+   * @return {!goog.testing.StrictMock}
+   */
+  mock: function(toMock) {
+    if (!this.shouldMakeMockControl_) {
+      throw new Error('MockControl not available on this environment. ' +
+                      'Call withMockControl if this environment is expected ' +
+                      'to contain a MockControl.');
+    }
+    return this.mockControl.createStrictMock(toMock);
   }
 });
+
+
+/**
+ * @private {?goog.testing.TestCase}
+ */
+goog.labs.testing.Environment.activeTestCase_ = null;
+
+
+// TODO(johnlenz): make this package private when it moves out of labs.
+/**
+ * @return {?goog.testing.TestCase}
+ */
+goog.labs.testing.Environment.getTestCaseIfActive = function() {
+  return goog.labs.testing.Environment.activeTestCase_;
+};
+
+
+/** @private @const {!goog.debug.Console} */
+goog.labs.testing.Environment.console_ = new goog.debug.Console();
+
+
+// Activate logging to the browser's console by default.
+goog.labs.testing.Environment.console_.setCapturing(true);
 
 
 
@@ -133,8 +199,11 @@ goog.labs.testing.Environment = goog.defineClass(null, {
 goog.labs.testing.EnvironmentTestCase_ = function() {
   goog.labs.testing.EnvironmentTestCase_.base(this, 'constructor');
 
-  /** @private {!Array.<!goog.labs.testing.Environment>}> */
+  /** @private {!Array<!goog.labs.testing.Environment>}> */
   this.environments_ = [];
+
+  /** @private {!Object} */
+  this.testobj_ = goog.global; //default
 
   // Automatically install this TestCase when any environment is used in a test.
   goog.testing.TestCase.initializeTestRunner(this);
@@ -144,17 +213,31 @@ goog.addSingletonGetter(goog.labs.testing.EnvironmentTestCase_);
 
 
 /**
+ * @param {!Object} obj An object providing the test and life cycle methods.
+ * @override
+ */
+goog.labs.testing.EnvironmentTestCase_.prototype.setTestObj = function(obj) {
+  goog.asserts.assert(this.testobj_ == goog.global,
+      'A test method object has already been provided ' +
+      'and only one is supported.');
+  this.testobj_ = obj;
+  goog.labs.testing.EnvironmentTestCase_.base(this, 'setTestObj', obj);
+};
+
+
+/**
  * Override the default global scope discovery of lifecycle functions to prevent
  * overriding the custom environment setUp(Page)/tearDown(Page) logic.
  * @override
  */
 goog.labs.testing.EnvironmentTestCase_.prototype.autoDiscoverLifecycle =
     function() {
-  if (goog.global['runTests']) {
-    this.runTests = goog.bind(goog.global['runTests'], goog.global);
+  if (this.testobj_['runTests']) {
+    this.runTests = goog.bind(this.testobj_['runTests'], this.testobj_);
   }
-  if (goog.global['shouldRunTests']) {
-    this.shouldRunTests = goog.bind(goog.global['shouldRunTests'], goog.global);
+  if (this.testobj_['shouldRunTests']) {
+    this.shouldRunTests = goog.bind(
+        this.testobj_['shouldRunTests'], this.testobj_);
   }
 };
 
@@ -177,8 +260,8 @@ goog.labs.testing.EnvironmentTestCase_.prototype.setUpPage = function() {
   });
 
   // User defined setUpPage method.
-  if (goog.global['setUpPage']) {
-    goog.global['setUpPage']();
+  if (this.testobj_['setUpPage']) {
+    this.testobj_['setUpPage']();
   }
 };
 
@@ -186,8 +269,8 @@ goog.labs.testing.EnvironmentTestCase_.prototype.setUpPage = function() {
 /** @override */
 goog.labs.testing.EnvironmentTestCase_.prototype.setUp = function() {
   // User defined configure method.
-  if (goog.global['configureEnvironment']) {
-    goog.global['configureEnvironment']();
+  if (this.testobj_['configureEnvironment']) {
+    this.testobj_['configureEnvironment']();
   }
 
   goog.array.forEach(this.environments_, function(env) {
@@ -195,8 +278,8 @@ goog.labs.testing.EnvironmentTestCase_.prototype.setUp = function() {
   }, this);
 
   // User defined setUp method.
-  if (goog.global['setUp']) {
-    goog.global['setUp']();
+  if (this.testobj_['setUp']) {
+    this.testobj_['setUp']();
   }
 };
 
@@ -205,9 +288,9 @@ goog.labs.testing.EnvironmentTestCase_.prototype.setUp = function() {
 goog.labs.testing.EnvironmentTestCase_.prototype.tearDown = function() {
   var firstException;
   // User defined tearDown method.
-  if (goog.global['tearDown']) {
+  if (this.testobj_['tearDown']) {
     try {
-      goog.global['tearDown']();
+      this.testobj_['tearDown']();
     } catch (e) {
       if (!firstException) {
         firstException = e;
@@ -237,8 +320,8 @@ goog.labs.testing.EnvironmentTestCase_.prototype.tearDown = function() {
 /** @override */
 goog.labs.testing.EnvironmentTestCase_.prototype.tearDownPage = function() {
   // User defined tearDownPage method.
-  if (goog.global['tearDownPage']) {
-    goog.global['tearDownPage']();
+  if (this.testobj_['tearDownPage']) {
+    this.testobj_['tearDownPage']();
   }
 
   goog.array.forEachRight(this.environments_, function(env) {

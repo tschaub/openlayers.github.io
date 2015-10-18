@@ -3,6 +3,7 @@ goog.provide('ol.CoordinateFormatType');
 goog.provide('ol.coordinate');
 
 goog.require('goog.math');
+goog.require('goog.string');
 
 
 /**
@@ -129,8 +130,8 @@ ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres) {
   var normalizedDegrees = goog.math.modulo(degrees + 180, 360) - 180;
   var x = Math.abs(Math.round(3600 * normalizedDegrees));
   return Math.floor(x / 3600) + '\u00b0 ' +
-      Math.floor((x / 60) % 60) + '\u2032 ' +
-      Math.floor(x % 60) + '\u2033 ' +
+      goog.string.padNumber(Math.floor((x / 60) % 60), 2) + '\u2032 ' +
+      goog.string.padNumber(Math.floor(x % 60), 2) + '\u2033 ' +
       hemispheres.charAt(normalizedDegrees < 0 ? 1 : 0);
 };
 
@@ -159,11 +160,11 @@ ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres) {
  *     that will be replaced by first and second coordinate values.
  * @param {number=} opt_fractionDigits The number of digits to include
  *    after the decimal point. Default is `0`.
- * @return {string} Formated coordinate.
+ * @return {string} Formatted coordinate.
  * @api stable
  */
 ol.coordinate.format = function(coordinate, template, opt_fractionDigits) {
-  if (goog.isDef(coordinate)) {
+  if (coordinate) {
     return template
       .replace('{x}', coordinate[0].toFixed(opt_fractionDigits))
       .replace('{y}', coordinate[1].toFixed(opt_fractionDigits));
@@ -280,6 +281,9 @@ ol.coordinate.squaredDistanceToSegment = function(coordinate, segment) {
 
 
 /**
+ * Format a geographic coordinate with the hemisphere, degrees, minutes, and
+ * seconds.
+ *
  * Example:
  *
  *     var coord = [7.85, 47.983333];
@@ -291,7 +295,7 @@ ol.coordinate.squaredDistanceToSegment = function(coordinate, segment) {
  * @api stable
  */
 ol.coordinate.toStringHDMS = function(coordinate) {
-  if (goog.isDef(coordinate)) {
+  if (coordinate) {
     return ol.coordinate.degreesToStringHDMS_(coordinate[1], 'NS') + ' ' +
         ol.coordinate.degreesToStringHDMS_(coordinate[0], 'EW');
   } else {
@@ -301,6 +305,8 @@ ol.coordinate.toStringHDMS = function(coordinate) {
 
 
 /**
+ * Format a coordinate as a comma delimited string.
+ *
  * Example without specifying fractional digits:
  *
  *     var coord = [7.85, 47.983333];

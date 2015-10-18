@@ -1,7 +1,7 @@
 goog.provide('ol.geom.Point');
 
-goog.require('goog.asserts');
 goog.require('ol.extent');
+goog.require('ol.geom.GeometryLayout');
 goog.require('ol.geom.GeometryType');
 goog.require('ol.geom.SimpleGeometry');
 goog.require('ol.geom.flat.deflate');
@@ -21,8 +21,7 @@ goog.require('ol.math');
  */
 ol.geom.Point = function(coordinates, opt_layout) {
   goog.base(this);
-  this.setCoordinates(coordinates,
-      /** @type {ol.geom.GeometryLayout|undefined} */ (opt_layout));
+  this.setCoordinates(coordinates, opt_layout);
 };
 goog.inherits(ol.geom.Point, ol.geom.SimpleGeometry);
 
@@ -62,25 +61,20 @@ ol.geom.Point.prototype.closestPointXY =
 
 
 /**
+ * Return the coordinate of the point.
  * @return {ol.Coordinate} Coordinates.
  * @api stable
  */
 ol.geom.Point.prototype.getCoordinates = function() {
-  return goog.isNull(this.flatCoordinates) ? [] : this.flatCoordinates.slice();
+  return !this.flatCoordinates ? [] : this.flatCoordinates.slice();
 };
 
 
 /**
  * @inheritDoc
  */
-ol.geom.Point.prototype.getExtent = function(opt_extent) {
-  if (this.extentRevision != this.getRevision()) {
-    this.extent = ol.extent.createOrUpdateFromCoordinate(
-        this.flatCoordinates, this.extent);
-    this.extentRevision = this.getRevision();
-  }
-  goog.asserts.assert(goog.isDef(this.extent));
-  return ol.extent.returnOrUpdate(this.extent, opt_extent);
+ol.geom.Point.prototype.computeExtent = function(extent) {
+  return ol.extent.createOrUpdateFromCoordinate(this.flatCoordinates, extent);
 };
 
 
@@ -94,21 +88,32 @@ ol.geom.Point.prototype.getType = function() {
 
 
 /**
+ * @inheritDoc
+ * @api stable
+ */
+ol.geom.Point.prototype.intersectsExtent = function(extent) {
+  return ol.extent.containsXY(extent,
+      this.flatCoordinates[0], this.flatCoordinates[1]);
+};
+
+
+/**
+ * Set the coordinate of the point.
  * @param {ol.Coordinate} coordinates Coordinates.
  * @param {ol.geom.GeometryLayout=} opt_layout Layout.
  * @api stable
  */
 ol.geom.Point.prototype.setCoordinates = function(coordinates, opt_layout) {
-  if (goog.isNull(coordinates)) {
+  if (!coordinates) {
     this.setFlatCoordinates(ol.geom.GeometryLayout.XY, null);
   } else {
     this.setLayout(opt_layout, coordinates, 0);
-    if (goog.isNull(this.flatCoordinates)) {
+    if (!this.flatCoordinates) {
       this.flatCoordinates = [];
     }
     this.flatCoordinates.length = ol.geom.flat.deflate.coordinate(
         this.flatCoordinates, 0, coordinates, this.stride);
-    this.dispatchChangeEvent();
+    this.changed();
   }
 };
 
@@ -119,5 +124,5 @@ ol.geom.Point.prototype.setCoordinates = function(coordinates, opt_layout) {
  */
 ol.geom.Point.prototype.setFlatCoordinates = function(layout, flatCoordinates) {
   this.setFlatCoordinatesInternal(layout, flatCoordinates);
-  this.dispatchChangeEvent();
+  this.changed();
 };

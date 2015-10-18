@@ -20,6 +20,7 @@
  *
  * This parser uses http://tools.ietf.org/html/rfc4180 as the definition of CSV.
  *
+ * @author nnaze@google.com (Nathan Naze) Ported to Closure
  */
 goog.provide('goog.labs.format.csv');
 goog.provide('goog.labs.format.csv.ParseError');
@@ -149,12 +150,18 @@ goog.labs.format.csv.Token;
  * @param {string} text The entire CSV text to be parsed.
  * @param {boolean=} opt_ignoreErrors Whether to ignore parsing errors and
  *      instead try to recover and keep going.
- * @return {!Array.<!Array.<string>>} The parsed CSV.
+ * @param {string=} opt_delimiter The delimiter to use. Defaults to ','
+ * @return {!Array<!Array<string>>} The parsed CSV.
  */
-goog.labs.format.csv.parse = function(text, opt_ignoreErrors) {
+goog.labs.format.csv.parse = function(text, opt_ignoreErrors, opt_delimiter) {
 
   var index = 0;  // current char offset being considered
 
+  var delimiter = opt_delimiter || ',';
+  goog.asserts.assert(delimiter.length == 1,
+      'Delimiter must be a single character.');
+  goog.asserts.assert(delimiter != '\r' && opt_delimiter != '\n',
+      'Cannot use newline or carriage return has delimiter.');
 
   var EOF = goog.labs.format.csv.Sentinels_.EOF;
   var EOR = goog.labs.format.csv.Sentinels_.EOR;
@@ -238,7 +245,7 @@ goog.labs.format.csv.parse = function(text, opt_ignoreErrors) {
         }
 
         // End of field.  Break out.
-        if (token == ',' || token == EOF || token == NEWLINE) {
+        if (token == delimiter || token == EOF || token == NEWLINE) {
           if (token == NEWLINE) {
             pushBack(token);
           }
@@ -316,7 +323,7 @@ goog.labs.format.csv.parse = function(text, opt_ignoreErrors) {
       }
 
       // This is the end of record.
-      if (token == ',') {
+      if (token == delimiter) {
         sawComma = true;
         break;
       }
@@ -339,7 +346,7 @@ goog.labs.format.csv.parse = function(text, opt_ignoreErrors) {
 
   /**
    * Read the next record.
-   * @return {!Array.<string>|!goog.labs.format.csv.Sentinels_} A single record
+   * @return {!Array<string>|!goog.labs.format.csv.Sentinels_} A single record
    *     with multiple fields.
    */
   function readRecord() {
@@ -364,7 +371,7 @@ goog.labs.format.csv.parse = function(text, opt_ignoreErrors) {
 
 /**
  * Sentinel tracking objects.
- * @enum {Object}
+ * @enum {!Object}
  * @private
  */
 goog.labs.format.csv.Sentinels_ = {
@@ -409,6 +416,3 @@ goog.labs.format.csv.assertToken_ = function(o) {
         'Should be a string of length 1 or a sentinel.');
   }
 };
-
-
-

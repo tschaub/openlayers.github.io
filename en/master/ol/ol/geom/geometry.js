@@ -1,9 +1,10 @@
 goog.provide('ol.geom.Geometry');
+goog.provide('ol.geom.GeometryLayout');
 goog.provide('ol.geom.GeometryType');
 
-goog.require('goog.asserts');
 goog.require('goog.functions');
-goog.require('ol.Observable');
+goog.require('ol.Object');
+goog.require('ol.extent');
 goog.require('ol.proj');
 
 
@@ -49,9 +50,11 @@ ol.geom.GeometryLayout = {
  * instantiated in apps.
  * Base class for vector geometries.
  *
+ * To get notified of changes to the geometry, register a listener for the
+ * generic `change` event on your geometry instance.
+ *
  * @constructor
- * @extends {ol.Observable}
- * @fires change Triggered when the geometry changes.
+ * @extends {ol.Object}
  * @api stable
  */
 ol.geom.Geometry = function() {
@@ -59,16 +62,16 @@ ol.geom.Geometry = function() {
   goog.base(this);
 
   /**
-   * @protected
-   * @type {ol.Extent|undefined}
+   * @private
+   * @type {ol.Extent}
    */
-  this.extent = undefined;
+  this.extent_ = ol.extent.createEmpty();
 
   /**
-   * @protected
+   * @private
    * @type {number}
    */
-  this.extentRevision = -1;
+  this.extentRevision_ = -1;
 
   /**
    * @protected
@@ -89,14 +92,13 @@ ol.geom.Geometry = function() {
   this.simplifiedGeometryRevision = 0;
 
 };
-goog.inherits(ol.geom.Geometry, ol.Observable);
+goog.inherits(ol.geom.Geometry, ol.Object);
 
 
 /**
  * Make a complete copy of the geometry.
  * @function
  * @return {!ol.geom.Geometry} Clone.
- * @api stable
  */
 ol.geom.Geometry.prototype.clone = goog.abstractMethod;
 
@@ -112,14 +114,15 @@ ol.geom.Geometry.prototype.closestPointXY = goog.abstractMethod;
 
 
 /**
+ * Return the closest point of the geometry to the passed point as
+ * {@link ol.Coordinate coordinate}.
  * @param {ol.Coordinate} point Point.
  * @param {ol.Coordinate=} opt_closestPoint Closest point.
  * @return {ol.Coordinate} Closest point.
  * @api stable
  */
 ol.geom.Geometry.prototype.getClosestPoint = function(point, opt_closestPoint) {
-  var closestPoint = goog.isDef(opt_closestPoint) ?
-      opt_closestPoint : [NaN, NaN];
+  var closestPoint = opt_closestPoint ? opt_closestPoint : [NaN, NaN];
   this.closestPointXY(point[0], point[1], closestPoint, Infinity);
   return closestPoint;
 };
@@ -135,6 +138,14 @@ ol.geom.Geometry.prototype.containsCoordinate = function(coordinate) {
 
 
 /**
+ * @param {ol.Extent} extent Extent.
+ * @protected
+ * @return {ol.Extent} extent Extent.
+ */
+ol.geom.Geometry.prototype.computeExtent = goog.abstractMethod;
+
+
+/**
  * @param {number} x X.
  * @param {number} y Y.
  * @return {boolean} Contains (x, y).
@@ -144,18 +155,40 @@ ol.geom.Geometry.prototype.containsXY = goog.functions.FALSE;
 
 /**
  * Get the extent of the geometry.
- * @function
  * @param {ol.Extent=} opt_extent Extent.
  * @return {ol.Extent} extent Extent.
  * @api stable
  */
-ol.geom.Geometry.prototype.getExtent = goog.abstractMethod;
+ol.geom.Geometry.prototype.getExtent = function(opt_extent) {
+  if (this.extentRevision_ != this.getRevision()) {
+    this.extent_ = this.computeExtent(this.extent_);
+    this.extentRevision_ = this.getRevision();
+  }
+  return ol.extent.returnOrUpdate(this.extent_, opt_extent);
+};
+
+
+/**
+ * Create a simplified version of this geometry.  For linestrings, this uses
+ * the the {@link
+ * https://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
+ * Douglas Peucker} algorithm.  For polygons, a quantization-based
+ * simplification is used to preserve topology.
+ * @function
+ * @param {number} tolerance The tolerance distance for simplification.
+ * @return {ol.geom.Geometry} A new, simplified version of the original
+ *     geometry.
+ * @api
+ */
+ol.geom.Geometry.prototype.simplify = function(tolerance) {
+  return this.getSimplifiedGeometry(tolerance * tolerance);
+};
 
 
 /**
  * Create a simplified version of this geometry using the Douglas Peucker
  * algorithm.
- * @see http://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
+ * @see https://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
  * @function
  * @param {number} squaredTolerance Squared tolerance.
  * @return {ol.geom.Geometry} Simplified geometry.
@@ -167,25 +200,44 @@ ol.geom.Geometry.prototype.getSimplifiedGeometry = goog.abstractMethod;
  * Get the type of this geometry.
  * @function
  * @return {ol.geom.GeometryType} Geometry type.
- * @api stable
  */
 ol.geom.Geometry.prototype.getType = goog.abstractMethod;
 
 
 /**
- * Apply a transform function to the geometry.  Modifies the geometry in place.
+ * Apply a transform function to each coordinate of the geometry.
+ * The geometry is modified in place.
  * If you do not want the geometry modified in place, first clone() it and
  * then use this function on the clone.
  * @function
  * @param {ol.TransformFunction} transformFn Transform.
- * @api stable
  */
 ol.geom.Geometry.prototype.applyTransform = goog.abstractMethod;
 
 
 /**
- * Transform a geometry from one coordinate reference system to another.
- * Modifies the geometry in place.
+ * Test if the geometry and the passed extent intersect.
+ * @param {ol.Extent} extent Extent.
+ * @return {boolean} `true` if the geometry and the extent intersect.
+ * @function
+ */
+ol.geom.Geometry.prototype.intersectsExtent = goog.abstractMethod;
+
+
+/**
+ * Translate the geometry.  This modifies the geometry coordinates in place.  If
+ * instead you want a new geometry, first `clone()` this geometry.
+ * @param {number} deltaX Delta X.
+ * @param {number} deltaY Delta Y.
+ * @function
+ */
+ol.geom.Geometry.prototype.translate = goog.abstractMethod;
+
+
+/**
+ * Transform each coordinate of the geometry from one coordinate reference
+ * system to another. The geometry is modified in place.
+ * For example, a line will be transformed to a line and a circle to a circle.
  * If you do not want the geometry modified in place, first clone() it and
  * then use this function on the clone.
  *

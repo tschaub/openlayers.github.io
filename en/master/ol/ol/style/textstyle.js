@@ -1,6 +1,9 @@
 goog.provide('ol.style.Text');
 
 
+goog.require('ol.style.Fill');
+
+
 
 /**
  * @classdesc
@@ -12,7 +15,7 @@ goog.provide('ol.style.Text');
  */
 ol.style.Text = function(opt_options) {
 
-  var options = goog.isDef(opt_options) ? opt_options : {};
+  var options = opt_options || {};
 
   /**
    * @private
@@ -54,29 +57,41 @@ ol.style.Text = function(opt_options) {
    * @private
    * @type {ol.style.Fill}
    */
-  this.fill_ = goog.isDef(options.fill) ? options.fill : null;
+  this.fill_ = options.fill !== undefined ? options.fill :
+      new ol.style.Fill({color: ol.style.Text.DEFAULT_FILL_COLOR_});
 
   /**
    * @private
    * @type {ol.style.Stroke}
    */
-  this.stroke_ = goog.isDef(options.stroke) ? options.stroke : null;
+  this.stroke_ = options.stroke !== undefined ? options.stroke : null;
 
   /**
    * @private
    * @type {number}
    */
-  this.offsetX_ = goog.isDef(options.offsetX) ? options.offsetX : 0;
+  this.offsetX_ = options.offsetX !== undefined ? options.offsetX : 0;
 
   /**
    * @private
    * @type {number}
    */
-  this.offsetY_ = goog.isDef(options.offsetY) ? options.offsetY : 0;
+  this.offsetY_ = options.offsetY !== undefined ? options.offsetY : 0;
 };
 
 
 /**
+ * The default fill color to use if no fill was set at construction time; a
+ * blackish `#333`.
+ *
+ * @const {string}
+ * @private
+ */
+ol.style.Text.DEFAULT_FILL_COLOR_ = '#333';
+
+
+/**
+ * Get the font name.
  * @return {string|undefined} Font.
  * @api
  */
@@ -86,7 +101,9 @@ ol.style.Text.prototype.getFont = function() {
 
 
 /**
+ * Get the x-offset for the text.
  * @return {number} Horizontal text offset.
+ * @api
  */
 ol.style.Text.prototype.getOffsetX = function() {
   return this.offsetX_;
@@ -94,7 +111,9 @@ ol.style.Text.prototype.getOffsetX = function() {
 
 
 /**
+ * Get the y-offset for the text.
  * @return {number} Vertical text offset.
+ * @api
  */
 ol.style.Text.prototype.getOffsetY = function() {
   return this.offsetY_;
@@ -102,6 +121,7 @@ ol.style.Text.prototype.getOffsetY = function() {
 
 
 /**
+ * Get the fill style for the text.
  * @return {ol.style.Fill} Fill style.
  * @api
  */
@@ -111,6 +131,7 @@ ol.style.Text.prototype.getFill = function() {
 
 
 /**
+ * Get the text rotation.
  * @return {number|undefined} Rotation.
  * @api
  */
@@ -120,6 +141,7 @@ ol.style.Text.prototype.getRotation = function() {
 
 
 /**
+ * Get the text scale.
  * @return {number|undefined} Scale.
  * @api
  */
@@ -129,6 +151,7 @@ ol.style.Text.prototype.getScale = function() {
 
 
 /**
+ * Get the stroke style for the text.
  * @return {ol.style.Stroke} Stroke style.
  * @api
  */
@@ -138,6 +161,7 @@ ol.style.Text.prototype.getStroke = function() {
 
 
 /**
+ * Get the text to be rendered.
  * @return {string|undefined} Text.
  * @api
  */
@@ -147,6 +171,7 @@ ol.style.Text.prototype.getText = function() {
 
 
 /**
+ * Get the text alignment.
  * @return {string|undefined} Text align.
  * @api
  */
@@ -156,9 +181,118 @@ ol.style.Text.prototype.getTextAlign = function() {
 
 
 /**
+ * Get the text baseline.
  * @return {string|undefined} Text baseline.
  * @api
  */
 ol.style.Text.prototype.getTextBaseline = function() {
   return this.textBaseline_;
+};
+
+
+/**
+ * Set the font.
+ *
+ * @param {string|undefined} font Font.
+ * @api
+ */
+ol.style.Text.prototype.setFont = function(font) {
+  this.font_ = font;
+};
+
+
+/**
+ * Set the x offset.
+ *
+ * @param {number} offsetX Horizontal text offset.
+ */
+ol.style.Text.prototype.setOffsetX = function(offsetX) {
+  this.offsetX_ = offsetX;
+};
+
+
+/**
+ * Set the y offset.
+ *
+ * @param {number} offsetY Vertical text offset.
+ */
+ol.style.Text.prototype.setOffsetY = function(offsetY) {
+  this.offsetY_ = offsetY;
+};
+
+
+/**
+ * Set the fill.
+ *
+ * @param {ol.style.Fill} fill Fill style.
+ * @api
+ */
+ol.style.Text.prototype.setFill = function(fill) {
+  this.fill_ = fill;
+};
+
+
+/**
+ * Set the rotation.
+ *
+ * @param {number|undefined} rotation Rotation.
+ * @api
+ */
+ol.style.Text.prototype.setRotation = function(rotation) {
+  this.rotation_ = rotation;
+};
+
+
+/**
+ * Set the scale.
+ *
+ * @param {number|undefined} scale Scale.
+ * @api
+ */
+ol.style.Text.prototype.setScale = function(scale) {
+  this.scale_ = scale;
+};
+
+
+/**
+ * Set the stroke.
+ *
+ * @param {ol.style.Stroke} stroke Stroke style.
+ * @api
+ */
+ol.style.Text.prototype.setStroke = function(stroke) {
+  this.stroke_ = stroke;
+};
+
+
+/**
+ * Set the text.
+ *
+ * @param {string|undefined} text Text.
+ * @api
+ */
+ol.style.Text.prototype.setText = function(text) {
+  this.text_ = text;
+};
+
+
+/**
+ * Set the text alignment.
+ *
+ * @param {string|undefined} textAlign Text align.
+ * @api
+ */
+ol.style.Text.prototype.setTextAlign = function(textAlign) {
+  this.textAlign_ = textAlign;
+};
+
+
+/**
+ * Set the text baseline.
+ *
+ * @param {string|undefined} textBaseline Text baseline.
+ * @api
+ */
+ol.style.Text.prototype.setTextBaseline = function(textBaseline) {
+  this.textBaseline_ = textBaseline;
 };

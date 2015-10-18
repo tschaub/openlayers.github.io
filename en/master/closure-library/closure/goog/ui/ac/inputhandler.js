@@ -175,14 +175,14 @@ goog.ui.ac.InputHandler = function(opt_separators, opt_literals,
 
   /**
    * Event handler used by the input handler to manage events.
-   * @type {goog.events.EventHandler.<!goog.ui.ac.InputHandler>}
+   * @type {goog.events.EventHandler<!goog.ui.ac.InputHandler>}
    * @private
    */
   this.eh_ = new goog.events.EventHandler(this);
 
   /**
    * Event handler to help us find an input element that already has the focus.
-   * @type {goog.events.EventHandler.<!goog.ui.ac.InputHandler>}
+   * @type {goog.events.EventHandler<!goog.ui.ac.InputHandler>}
    * @private
    */
   this.activateHandler_ = new goog.events.EventHandler(this);
@@ -444,7 +444,7 @@ goog.ui.ac.InputHandler.prototype.setCursorPosition = function(pos) {
  * should be a textarea, input box, or other focusable element with the
  * same interface.
  * @param {Element|goog.events.EventTarget} target An element to attach the
- *     input handler too.
+ *     input handler to.
  */
 goog.ui.ac.InputHandler.prototype.attachInput = function(target) {
   if (goog.dom.isElement(target)) {
@@ -465,7 +465,7 @@ goog.ui.ac.InputHandler.prototype.attachInput = function(target) {
       var ownerDocument = goog.dom.getOwnerDocument(
           /** @type {Element} */ (target));
       if (goog.dom.getActiveElement(ownerDocument) == target) {
-        this.processFocus(/** @type {Element} */ (target));
+        this.processFocus(/** @type {!Element} */ (target));
       }
     }
   }
@@ -557,7 +557,7 @@ goog.ui.ac.InputHandler.prototype.setTokenText =
     // Ensure there's whitespace wrapping the entries, if whitespaceWrapEntries_
     // has been set to true.
     if (this.whitespaceWrapEntries_) {
-      if (index != 0 && !goog.string.isEmpty(entries[index - 1])) {
+      if (index != 0 && !goog.string.isEmptyOrWhitespace(entries[index - 1])) {
         replaceValue = ' ' + replaceValue;
       }
       // Add a space only if it's the last token; otherwise, we assume the
@@ -1291,7 +1291,7 @@ goog.ui.ac.InputHandler.prototype.getTokenIndex_ = function(text, caret) {
  * entries.
  *
  * @param {string} text Input text.
- * @return {!Array} Parsed array.
+ * @return {!Array<string>} Parsed array.
  * @private
  */
 goog.ui.ac.InputHandler.prototype.splitInput_ = function(text) {

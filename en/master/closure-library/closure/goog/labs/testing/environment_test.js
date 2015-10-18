@@ -17,17 +17,23 @@ goog.setTestOnly('goog.labs.testing.environmentTest');
 
 goog.require('goog.labs.testing.Environment');
 goog.require('goog.testing.MockControl');
+goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.TestCase');
 goog.require('goog.testing.jsunit');
+goog.require('goog.testing.testSuite');
 
 var testCase = null;
 var mockControl = null;
+var replacer = null;
 
 // Use this flag to control whether the global JsUnit lifecycle events are being
 // called as part of the test lifecycle or as part of the "mocked" environment.
 var testing = false;
 
 function setUp() {
+  // These methods end up being called by the test framework for these tests
+  // as well as the part of the environment that is being tested as part
+  // of the test.  Bail if the test is already running.
   if (testing) {
     return;
   }
@@ -43,6 +49,8 @@ function setUp() {
   goog.testing.TestCase.initializeTestRunner = initFn;
 
   mockControl = new goog.testing.MockControl();
+
+  replacer = new goog.testing.PropertyReplacer();
 }
 
 function tearDown() {
@@ -50,6 +58,9 @@ function tearDown() {
     return;
   }
 
+  replacer.reset();
+
+  mockControl.$resetAll();
   mockControl.$tearDown();
 }
 
@@ -92,6 +103,39 @@ function testLifecycle() {
   testing = false;
 }
 
+function testTearDownWithMockControl() {
+  testing = true;
+
+  var envWith = new goog.labs.testing.Environment();
+  var envWithout = new goog.labs.testing.Environment();
+
+  var mockControlMock = mockControl.createStrictMock(goog.testing.MockControl);
+  var mockControlCtorMock = mockControl.createMethodMock(goog.testing,
+      'MockControl');
+  mockControlCtorMock().$times(1).$returns(mockControlMock);
+  // Expecting verify / reset calls twice since two environments use the same
+  // mockControl, but only one created it and is allowed to tear it down.
+  mockControlMock.$verifyAll();
+  mockControlMock.$replayAll();
+  mockControlMock.$verifyAll();
+  mockControlMock.$resetAll();
+  mockControlMock.$tearDown().$times(1);
+  mockControlMock.$verifyAll();
+  mockControlMock.$replayAll();
+  mockControlMock.$verifyAll();
+  mockControlMock.$resetAll();
+
+  mockControl.$replayAll();
+  envWith.withMockControl();
+  envWithout.mockControl = mockControlMock;
+  envWith.tearDown();
+  envWithout.tearDown();
+  mockControl.$verifyAll();
+  mockControl.$resetAll();
+
+  testing = false;
+}
+
 function testAutoDiscoverTests() {
   testing = true;
 
@@ -107,18 +151,57 @@ function testAutoDiscoverTests() {
   assertEquals(tearDownFn, testCase.tearDownFn);
   assertEquals(tearDownPageFn, testCase.tearDownPageFn);
 
-  // Note that this number changes when more tests are added this file as
+  // Note that this number changes when more tests are added to this file as
   // the environment reflects on the window global scope for JsUnit.
-  assertEquals(4, testCase.tests_.length);
+  assertEquals(7, testCase.tests_.length);
 
   testing = false;
 }
+
+
+// Verify "goog.testing.testSuite" integration
+function testTestSuiteTests() {
+  testing = true;
+
+  // don't try to reinitialize the test runner, while a test is running.
+  replacer.set(goog.testing.TestCase, 'initializeTestRunner', function() {});
+
+  // with an active environment.
+  var envOne = new goog.labs.testing.Environment();
+
+  var setUpPageFn = testCase.setUpPage;
+  var setUpFn = testCase.setUp;
+  var tearDownFn = testCase.tearDownFn;
+  var tearDownPageFn = testCase.tearDownPageFn;
+
+  goog.testing.testSuite({
+    // These lifecycle methods should not override the environment testcase
+    // methods but they should be called, when the test runs.
+    setUp: function() {},
+    tearDown: function() {},
+    setUpPage: function() {},
+    tearDownPage: function() {},
+    // This test method should be added.
+    testMe: function() {}
+  });
+
+  assertEquals(setUpPageFn, testCase.setUpPage);
+  assertEquals(setUpFn, testCase.setUp);
+  assertEquals(tearDownFn, testCase.tearDownFn);
+  assertEquals(tearDownPageFn, testCase.tearDownPageFn);
+
+  // Note that this number changes when more tests are added to this file as
+  // the environment reflects on the window global scope for JsUnit.
+  assertEquals(1, testCase.tests_.length);
+
+  testing = false;
+}
+
 
 function testMockClock() {
   testing = true;
 
   var env = new goog.labs.testing.Environment().withMockClock();
-  assertNull(env.mockClock); // Not created before test runs.
 
   testCase.addNewTest('testThatThrowsEventually', function() {
     setTimeout(function() {
@@ -128,8 +211,6 @@ function testMockClock() {
 
   testCase.runTests();
   assertTestFailure(testCase, 'testThatThrowsEventually', 'LateErrorMessage');
-  assertTrue(env.mockClock.isDisposed());
-  assertNull(env.mockControl);
 
   testing = false;
 }
@@ -138,21 +219,42 @@ function testMockControl() {
   testing = true;
 
   var env = new goog.labs.testing.Environment().withMockControl();
-  assertNull(env.mockControl);
+  var test = env.mockControl.createFunctionMock('test');
 
   testCase.addNewTest('testWithoutVerify', function() {
-    var test = env.mockControl.createFunctionMock('test');
     test();
     env.mockControl.$replayAll();
+    test();
   });
 
   testCase.runTests();
-  assertTestFailure(testCase, 'testWithoutVerify', 'Missing a call to test');
   assertNull(env.mockClock);
 
   testing = false;
 }
 
-function assertTestFailure(testCase, name,  message) {
+function testMock() {
+  testing = true;
+
+  var env = new goog.labs.testing.Environment().withMockControl();
+  var mock = env.mock({
+    test: function() {}
+  });
+
+  testCase.addNewTest('testMockCalled', function() {
+    mock.test().$times(2);
+
+    env.mockControl.$replayAll();
+    mock.test();
+    mock.test();
+    env.mockControl.verifyAll();
+  });
+
+  testCase.runTests();
+
+  testing = false;
+}
+
+function assertTestFailure(testCase, name, message) {
   assertContains(message, testCase.result_.resultsByName[name][0]);
 }

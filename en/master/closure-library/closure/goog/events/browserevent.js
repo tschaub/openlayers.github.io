@@ -40,6 +40,7 @@
  * key and character code use {@link goog.events.KeyHandler}.
  * </pre>
  *
+ * @author arv@google.com (Erik Arvidsson)
  */
 
 goog.provide('goog.events.BrowserEvent');
@@ -204,7 +205,7 @@ goog.events.BrowserEvent.MouseButton = {
 
 /**
  * Static data for mapping mouse buttons.
- * @type {!Array.<number>}
+ * @type {!Array<number>}
  */
 goog.events.BrowserEvent.IEButtonMap = [
   1, // LEFT
@@ -221,6 +222,12 @@ goog.events.BrowserEvent.IEButtonMap = [
  */
 goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
   var type = this.type = e.type;
+
+  /**
+   * On touch devices use the first "changed touch" as the relevant touch.
+   * @type {Touch}
+   */
+  var relevantTouch = e.changedTouches ? e.changedTouches[0] : null;
 
   // TODO(nicksantos): Change this.target to type EventTarget.
   this.target = /** @type {Node} */ (e.target) || e.srcElement;
@@ -249,17 +256,25 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
 
   this.relatedTarget = relatedTarget;
 
-  // Webkit emits a lame warning whenever layerX/layerY is accessed.
-  // http://code.google.com/p/chromium/issues/detail?id=101733
-  this.offsetX = (goog.userAgent.WEBKIT || e.offsetX !== undefined) ?
-      e.offsetX : e.layerX;
-  this.offsetY = (goog.userAgent.WEBKIT || e.offsetY !== undefined) ?
-      e.offsetY : e.layerY;
-
-  this.clientX = e.clientX !== undefined ? e.clientX : e.pageX;
-  this.clientY = e.clientY !== undefined ? e.clientY : e.pageY;
-  this.screenX = e.screenX || 0;
-  this.screenY = e.screenY || 0;
+  if (!goog.isNull(relevantTouch)) {
+    this.clientX = relevantTouch.clientX !== undefined ?
+        relevantTouch.clientX : relevantTouch.pageX;
+    this.clientY = relevantTouch.clientY !== undefined ?
+        relevantTouch.clientY : relevantTouch.pageY;
+    this.screenX = relevantTouch.screenX || 0;
+    this.screenY = relevantTouch.screenY || 0;
+  } else {
+    // Webkit emits a lame warning whenever layerX/layerY is accessed.
+    // http://code.google.com/p/chromium/issues/detail?id=101733
+    this.offsetX = (goog.userAgent.WEBKIT || e.offsetX !== undefined) ?
+        e.offsetX : e.layerX;
+    this.offsetY = (goog.userAgent.WEBKIT || e.offsetY !== undefined) ?
+        e.offsetY : e.layerY;
+    this.clientX = e.clientX !== undefined ? e.clientX : e.pageX;
+    this.clientY = e.clientY !== undefined ? e.clientY : e.pageY;
+    this.screenX = e.screenX || 0;
+    this.screenY = e.screenY || 0;
+  }
 
   this.button = e.button;
 
@@ -382,9 +397,4 @@ goog.events.BrowserEvent.prototype.preventDefault = function() {
  */
 goog.events.BrowserEvent.prototype.getBrowserEvent = function() {
   return this.event_;
-};
-
-
-/** @override */
-goog.events.BrowserEvent.prototype.disposeInternal = function() {
 };

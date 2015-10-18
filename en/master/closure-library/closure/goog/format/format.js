@@ -98,8 +98,9 @@ goog.format.numericValueToString = function(val, opt_decimals) {
 
 /**
  * Converts number of bytes to string representation. Binary conversion.
- * Default is to return the additional 'B' suffix, e.g. '10.5KB' to minimize
- * confusion with counts that are scaled by powers of 1000.
+ * Default is to return the additional 'B' suffix only for scales greater than
+ * 1K, e.g. '10.5KB' to minimize confusion with counts that are scaled by powers
+ * of 1000. Otherwise, suffix is empty string.
  * @param {number} val Value to be converted.
  * @param {number=} opt_decimals The number of decimals to use.  Defaults to 2.
  * @param {boolean=} opt_suffix If true, include trailing 'B' in returned
@@ -203,8 +204,7 @@ goog.format.SCALED_NUMERIC_RE_ = /^([-]?\d+\.?\d*)([K,M,G,T,P,k,m,u,n]?)[B]?$/;
 
 /**
  * Ordered list of scaling prefixes in decreasing order.
- * @type {Array}
- * @private
+ * @private {Array<string>}
  */
 goog.format.NUMERIC_SCALE_PREFIXES_ = [
   'P', 'T', 'G', 'M', 'K', '', 'm', 'u', 'n'

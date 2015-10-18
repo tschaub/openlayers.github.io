@@ -1,8 +1,8 @@
 goog.provide('ol.control.Control');
 
-goog.require('goog.array');
 goog.require('goog.dom');
 goog.require('goog.events');
+goog.require('ol');
 goog.require('ol.MapEventType');
 goog.require('ol.Object');
 
@@ -45,14 +45,13 @@ ol.control.Control = function(options) {
    * @protected
    * @type {Element}
    */
-  this.element = goog.isDef(options.element) ? options.element : null;
+  this.element = options.element ? options.element : null;
 
   /**
    * @private
    * @type {Element}
    */
-  this.target_ = goog.isDef(options.target) ?
-      goog.dom.getElement(options.target) : null;
+  this.target_ = null;
 
   /**
    * @private
@@ -65,6 +64,15 @@ ol.control.Control = function(options) {
    * @type {!Array.<?number>}
    */
   this.listenerKeys = [];
+
+  /**
+   * @type {function(ol.MapEvent)}
+   */
+  this.render = options.render ? options.render : ol.nullFunction;
+
+  if (options.target) {
+    this.setTarget(options.target);
+  }
 
 };
 goog.inherits(ol.control.Control, ol.Object);
@@ -90,15 +98,6 @@ ol.control.Control.prototype.getMap = function() {
 
 
 /**
- * Function called on each map render. Executes in a requestAnimationFrame
- * callback. Can be implemented in sub-classes to re-render the control's
- * UI.
- * @param {ol.MapEvent} mapEvent Map event.
- */
-ol.control.Control.prototype.handleMapPostrender = goog.nullFunction;
-
-
-/**
  * Remove the control from its current map and attach it to the new map.
  * Subclasses may set up event handlers to get notified about changes to
  * the map here.
@@ -106,22 +105,36 @@ ol.control.Control.prototype.handleMapPostrender = goog.nullFunction;
  * @api stable
  */
 ol.control.Control.prototype.setMap = function(map) {
-  if (!goog.isNull(this.map_)) {
+  if (this.map_) {
     goog.dom.removeNode(this.element);
   }
-  if (!goog.array.isEmpty(this.listenerKeys)) {
-    goog.array.forEach(this.listenerKeys, goog.events.unlistenByKey);
+  if (this.listenerKeys.length > 0) {
+    this.listenerKeys.forEach(goog.events.unlistenByKey);
     this.listenerKeys.length = 0;
   }
   this.map_ = map;
-  if (!goog.isNull(this.map_)) {
-    var target = !goog.isNull(this.target_) ?
+  if (this.map_) {
+    var target = this.target_ ?
         this.target_ : map.getOverlayContainerStopEvent();
-    goog.dom.appendChild(target, this.element);
-    if (this.handleMapPostrender !== goog.nullFunction) {
+    target.appendChild(this.element);
+    if (this.render !== ol.nullFunction) {
       this.listenerKeys.push(goog.events.listen(map,
-          ol.MapEventType.POSTRENDER, this.handleMapPostrender, false, this));
+          ol.MapEventType.POSTRENDER, this.render, false, this));
     }
     map.render();
   }
+};
+
+
+/**
+ * This function is used to set a target element for the control. It has no
+ * effect if it is called after the control has been added to the map (i.e.
+ * after `setMap` is called on the control). If no `target` is set in the
+ * options passed to the control constructor and if `setTarget` is not called
+ * then the control is added to the map's overlay container.
+ * @param {Element|string} target Target.
+ * @api
+ */
+ol.control.Control.prototype.setTarget = function(target) {
+  this.target_ = goog.dom.getElement(target);
 };

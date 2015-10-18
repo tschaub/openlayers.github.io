@@ -21,9 +21,9 @@
  * @author gboyer@google.com (Garrett Boyer)
  */
 
-goog.provide('goog.soy.data');
 goog.provide('goog.soy.data.SanitizedContent');
 goog.provide('goog.soy.data.SanitizedContentKind');
+goog.provide('goog.soy.data.UnsanitizedText');
 
 goog.require('goog.html.SafeHtml');
 goog.require('goog.html.uncheckedconversions');
@@ -55,22 +55,12 @@ goog.soy.data.SanitizedContentKind = {
    */
   JS: goog.DEBUG ? {sanitizedContentJsChars: true} : {},
 
-  /**
-   * A sequence of code units that can appear between quotes (either kind) in a
-   * JS program without causing a parse error, and without causing any side
-   * effects.
-   * <p>
-   * The content should not contain unescaped quotes, newlines, or anything else
-   * that would cause parsing to fail or to cause a JS parser to finish the
-   * string its parsing inside the content.
-   * <p>
-   * The content must also not end inside an escape sequence ; no partial octal
-   * escape sequences or odd number of '{@code \}'s at the end.
-   */
-  JS_STR_CHARS: goog.DEBUG ? {sanitizedContentJsStrChars: true} : {},
-
   /** A properly encoded portion of a URI. */
   URI: goog.DEBUG ? {sanitizedContentUri: true} : {},
+
+  /** A resource URI not under attacker control. */
+  TRUSTED_RESOURCE_URI:
+      goog.DEBUG ? {sanitizedContentTrustedResourceUri: true} : {},
 
   /**
    * Repeated attribute names and values. For example,
@@ -133,9 +123,18 @@ goog.soy.data.SanitizedContent.prototype.contentDir = null;
 
 /**
  * The already-safe content.
- * @type {string}
+ * @protected {string}
  */
 goog.soy.data.SanitizedContent.prototype.content;
+
+
+/**
+ * Gets the already-safe content.
+ * @return {string}
+ */
+goog.soy.data.SanitizedContent.prototype.getContent = function() {
+  return this.content;
+};
 
 
 /** @override */
@@ -164,3 +163,17 @@ goog.soy.data.SanitizedContent.prototype.toSafeHtml = function() {
                   'SafeHtml-contract-compliant value.'),
           this.toString(), this.contentDir);
 };
+
+
+
+/**
+ * An intermediary base class to allow the type system to sepcify text templates
+ * without referencing the soydata package.
+ * @extends {goog.soy.data.SanitizedContent}
+ * @constructor
+ */
+goog.soy.data.UnsanitizedText = function() {
+  // TODO(gboyer): Delete this class after moving soydata to Closure.
+  goog.soy.data.UnsanitizedText.base(this, 'constructor');
+};
+goog.inherits(goog.soy.data.UnsanitizedText, goog.soy.data.SanitizedContent);

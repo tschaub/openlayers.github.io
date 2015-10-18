@@ -32,6 +32,7 @@ goog.provide('ol.pointer.TouchSource');
 
 goog.require('goog.array');
 goog.require('goog.object');
+goog.require('ol');
 goog.require('ol.pointer.EventSource');
 goog.require('ol.pointer.MouseSource');
 
@@ -168,7 +169,7 @@ ol.pointer.TouchSource.prototype.resetClickCountHandler_ = function() {
  * @private
  */
 ol.pointer.TouchSource.prototype.cancelResetClickCount_ = function() {
-  if (goog.isDef(this.resetId_)) {
+  if (this.resetId_ !== undefined) {
     goog.global.clearTimeout(this.resetId_);
   }
 };
@@ -187,7 +188,7 @@ ol.pointer.TouchSource.prototype.touchToPointer_ =
   // Touch identifiers can start at 0.
   // Add 2 to the touch identifier for compatibility.
   e.pointerId = inTouch.identifier + 2;
-  // TODO: check if this is neccessary?
+  // TODO: check if this is necessary?
   //e.target = findTarget(e);
   e.bubbles = true;
   e.cancelable = true;
@@ -312,11 +313,11 @@ ol.pointer.TouchSource.prototype.touchstart = function(inEvent) {
  * @param {Object} inPointer
  */
 ol.pointer.TouchSource.prototype.overDown_ = function(browserEvent, inPointer) {
-  goog.object.set(this.pointerMap, inPointer.pointerId, {
+  this.pointerMap[inPointer.pointerId] = {
     target: inPointer.target,
     out: inPointer,
     outTarget: inPointer.target
-  });
+  };
   this.dispatcher.over(inPointer, browserEvent);
   this.dispatcher.enter(inPointer, browserEvent);
   this.dispatcher.down(inPointer, browserEvent);
@@ -342,7 +343,7 @@ ol.pointer.TouchSource.prototype.touchmove = function(inEvent) {
 ol.pointer.TouchSource.prototype.moveOverOut_ =
     function(browserEvent, inPointer) {
   var event = inPointer;
-  var pointer = goog.object.get(this.pointerMap, event.pointerId);
+  var pointer = this.pointerMap[event.pointerId];
   // a finger drifted off the screen, ignore it
   if (!pointer) {
     return;
@@ -425,7 +426,7 @@ ol.pointer.TouchSource.prototype.cancelOut_ =
  * @param {Object} inPointer
  */
 ol.pointer.TouchSource.prototype.cleanUpPointer_ = function(inPointer) {
-  goog.object.remove(this.pointerMap, inPointer.pointerId);
+  delete this.pointerMap[inPointer.pointerId];
   this.removePrimaryPointer_(inPointer);
 };
 

@@ -15,6 +15,7 @@
 /**
  * @fileoverview Plugin to handle enter keys.
  *
+ * @author robbyw@google.com (Robby Walker)
  */
 
 goog.provide('goog.editor.plugins.EnterHandler');
@@ -182,7 +183,8 @@ goog.editor.plugins.EnterHandler.prototype.processParagraphTagsInternal =
 goog.editor.plugins.EnterHandler.isDirectlyInBlockquote = function(n) {
   for (var current = n; current; current = current.parentNode) {
     if (goog.editor.node.isBlockTag(current)) {
-      return current.tagName == goog.dom.TagName.BLOCKQUOTE;
+      return /** @type {!Element} */ (current).tagName ==
+          goog.dom.TagName.BLOCKQUOTE;
     }
   }
 
@@ -415,7 +417,8 @@ goog.editor.plugins.EnterHandler.DO_NOT_ENSURE_BLOCK_NODES_ =
  */
 goog.editor.plugins.EnterHandler.isBrElem = function(node) {
   return goog.editor.node.isEmpty(node) &&
-      node.getElementsByTagName(goog.dom.TagName.BR).length == 1;
+      /** @type {!Element} */ (node).
+      getElementsByTagName(goog.dom.TagName.BR).length == 1;
 };
 
 
@@ -583,7 +586,7 @@ goog.editor.plugins.EnterHandler.prototype.deleteCursorSelectionW3C_ =
 
   // Delete the current selection if it's is non-collapsed.
   // Although this is redundant in FF, it's necessary for Safari
-  if (!range.isCollapsed()) {
+  if (range && !range.isCollapsed()) {
     var shouldDelete = true;
     // Opera selects the <br> in an empty block if there is no text node
     // preceding it. To preserve inline formatting when pressing [enter] inside
@@ -598,7 +601,8 @@ goog.editor.plugins.EnterHandler.prototype.deleteCursorSelectionW3C_ =
       if (startNode == range.getEndNode() &&
           // This weeds out cases where startNode is a text node.
           startNode.lastChild &&
-          startNode.lastChild.tagName == goog.dom.TagName.BR &&
+          /** @type {!Element} */ (startNode.lastChild).tagName ==
+          goog.dom.TagName.BR &&
           // If this check is true, then endOffset is implied to be
           // startOffset + 1, because the selection is not collapsed and
           // it starts and ends within the same element.

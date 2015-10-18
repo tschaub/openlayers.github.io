@@ -3,7 +3,6 @@ goog.provide('ol.DragBoxEvent');
 goog.provide('ol.interaction.DragBox');
 
 goog.require('goog.events.Event');
-goog.require('goog.functions');
 goog.require('ol');
 goog.require('ol.events.ConditionType');
 goog.require('ol.events.condition');
@@ -86,21 +85,19 @@ goog.inherits(ol.DragBoxEvent, goog.events.Event);
  */
 ol.interaction.DragBox = function(opt_options) {
 
-  goog.base(this);
+  goog.base(this, {
+    handleDownEvent: ol.interaction.DragBox.handleDownEvent_,
+    handleDragEvent: ol.interaction.DragBox.handleDragEvent_,
+    handleUpEvent: ol.interaction.DragBox.handleUpEvent_
+  });
 
-  var options = goog.isDef(opt_options) ? opt_options : {};
-
-  /**
-   * @private
-   * @type {ol.style.Style}
-   */
-  var style = goog.isDef(options.style) ? options.style : null;
+  var options = opt_options ? opt_options : {};
 
   /**
    * @type {ol.render.Box}
    * @private
    */
-  this.box_ = new ol.render.Box(style);
+  this.box_ = new ol.render.Box(options.className || 'ol-dragbox');
 
   /**
    * @type {ol.Pixel}
@@ -112,7 +109,7 @@ ol.interaction.DragBox = function(opt_options) {
    * @private
    * @type {ol.events.ConditionType}
    */
-  this.condition_ = goog.isDef(options.condition) ?
+  this.condition_ = options.condition ?
       options.condition : ol.events.condition.always;
 
 };
@@ -120,9 +117,11 @@ goog.inherits(ol.interaction.DragBox, ol.interaction.Pointer);
 
 
 /**
- * @inheritDoc
+ * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
+ * @this {ol.interaction.DragBox}
+ * @private
  */
-ol.interaction.DragBox.prototype.handlePointerDrag = function(mapBrowserEvent) {
+ol.interaction.DragBox.handleDragEvent_ = function(mapBrowserEvent) {
   if (!ol.events.condition.mouseOnly(mapBrowserEvent)) {
     return;
   }
@@ -133,7 +132,7 @@ ol.interaction.DragBox.prototype.handlePointerDrag = function(mapBrowserEvent) {
 
 /**
  * Returns geometry of last drawn box.
- * @return {ol.geom.Geometry} Geometry.
+ * @return {ol.geom.Polygon} Geometry.
  * @api stable
  */
 ol.interaction.DragBox.prototype.getGeometry = function() {
@@ -143,16 +142,20 @@ ol.interaction.DragBox.prototype.getGeometry = function() {
 
 /**
  * To be overriden by child classes.
+ * FIXME: use constructor option instead of relying on overridding.
  * @param {ol.MapBrowserEvent} mapBrowserEvent Map browser event.
  * @protected
  */
-ol.interaction.DragBox.prototype.onBoxEnd = goog.nullFunction;
+ol.interaction.DragBox.prototype.onBoxEnd = ol.nullFunction;
 
 
 /**
- * @inheritDoc
+ * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
+ * @return {boolean} Stop drag sequence?
+ * @this {ol.interaction.DragBox}
+ * @private
  */
-ol.interaction.DragBox.prototype.handlePointerUp = function(mapBrowserEvent) {
+ol.interaction.DragBox.handleUpEvent_ = function(mapBrowserEvent) {
   if (!ol.events.condition.mouseOnly(mapBrowserEvent)) {
     return true;
   }
@@ -173,9 +176,12 @@ ol.interaction.DragBox.prototype.handlePointerUp = function(mapBrowserEvent) {
 
 
 /**
- * @inheritDoc
+ * @param {ol.MapBrowserPointerEvent} mapBrowserEvent Event.
+ * @return {boolean} Start drag sequence?
+ * @this {ol.interaction.DragBox}
+ * @private
  */
-ol.interaction.DragBox.prototype.handlePointerDown = function(mapBrowserEvent) {
+ol.interaction.DragBox.handleDownEvent_ = function(mapBrowserEvent) {
   if (!ol.events.condition.mouseOnly(mapBrowserEvent)) {
     return false;
   }
@@ -192,9 +198,3 @@ ol.interaction.DragBox.prototype.handlePointerDown = function(mapBrowserEvent) {
     return false;
   }
 };
-
-
-/**
- * @inheritDoc
- */
-ol.interaction.DragBox.prototype.shouldStopEvent = goog.functions.identity;

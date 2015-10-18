@@ -37,7 +37,6 @@
  * - getCssClass
  *
  * @author arv@google.com (Erik Arvidsson)
- * @author reto@google.com (Reto Strobl)
  */
 
 goog.provide('goog.ui.SliderBase');
@@ -51,6 +50,7 @@ goog.require('goog.a11y.aria.State');
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.dom');
+goog.require('goog.dom.TagName');
 goog.require('goog.dom.classlist');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
@@ -96,7 +96,7 @@ goog.ui.SliderBase = function(opt_domHelper, opt_labelFn) {
    * The model for the range of the slider.
    * @type {!goog.ui.RangeModel}
    */
-  this.rangeModel = new goog.ui.RangeModel;
+  this.rangeModel = new goog.ui.RangeModel();
 
   /**
    * A function mapping slider values to text description.
@@ -157,6 +157,22 @@ goog.ui.SliderBase.Orientation = {
  */
 goog.ui.SliderBase.prototype.orientation_ =
     goog.ui.SliderBase.Orientation.HORIZONTAL;
+
+
+/** @private {goog.fx.AnimationParallelQueue} */
+goog.ui.SliderBase.prototype.currentAnimation_;
+
+
+/** @private {!goog.Timer} */
+goog.ui.SliderBase.prototype.incTimer_;
+
+
+/** @private {boolean} */
+goog.ui.SliderBase.prototype.incrementing_;
+
+
+/** @private {number} */
+goog.ui.SliderBase.prototype.lastMousePosition_;
 
 
 /**
@@ -355,7 +371,8 @@ goog.ui.SliderBase.prototype.getCssClass = goog.abstractMethod;
 goog.ui.SliderBase.prototype.createDom = function() {
   goog.ui.SliderBase.superClass_.createDom.call(this);
   var element =
-      this.getDomHelper().createDom('div', this.getCssClass(this.orientation_));
+      this.getDomHelper().createDom(goog.dom.TagName.DIV,
+                                    this.getCssClass(this.orientation_));
   this.decorateInternal(element);
 };
 
@@ -526,7 +543,7 @@ goog.ui.SliderBase.prototype.handleBeforeDrag_ = function(e) {
 
 
 /**
- * Handler for the start/end drag event on the thumgs. Adds/removes
+ * Handler for the start/end drag event on the thumbs. Adds/removes
  * the "-dragging" CSS classes on the slider and thumb.
  * @param {goog.fx.DragEvent} e The drag event used to drag the thumb.
  * @private
@@ -803,14 +820,6 @@ goog.ui.SliderBase.prototype.getValueFromMousePosition = function(e) {
     return (max - min) * x / availW + min;
   }
 };
-
-
-/**
- * @deprecated Since 25-June-2012. Use public method getValueFromMousePosition.
- * @private
- */
-goog.ui.SliderBase.prototype.getValueFromMousePosition_ =
-    goog.ui.SliderBase.prototype.getValueFromMousePosition;
 
 
 /**
@@ -1100,14 +1109,6 @@ goog.ui.SliderBase.prototype.getThumbCoordinateForValue = function(val) {
 
 
 /**
- * @deprecated Since 25-June-2012. Use public method getThumbCoordinateForValue.
- * @private
- */
-goog.ui.SliderBase.prototype.getThumbCoordinateForValue_ =
-    goog.ui.SliderBase.prototype.getThumbCoordinateForValue;
-
-
-/**
  * Sets the value and starts animating the handle towards that position.
  * @param {number} v Value to set and animate to.
  */
@@ -1117,6 +1118,7 @@ goog.ui.SliderBase.prototype.animatedSetValue = function(v) {
 
   if (this.isAnimating_) {
     this.currentAnimation_.stop(true);
+    this.currentAnimation_.dispose();
   }
   var animations = new goog.fx.AnimationParallelQueue();
   var end;
@@ -1250,7 +1252,6 @@ goog.ui.SliderBase.prototype.addRangeHighlightAnimations_ = function(thumb,
         previousMinCoord.x, previousMaxCoord.x, this.valueThumb.offsetWidth);
     var highlightPositioning = this.calculateRangeHighlightPositioning_(
         minCoord.x, maxCoord.x, this.valueThumb.offsetWidth);
-    var newWidth = highlightPositioning[1];
     var slide = new goog.fx.dom.Slide(this.rangeHighlight,
         [previousHighlightPositioning.offset, this.rangeHighlight.offsetTop],
         [highlightPositioning.offset, this.rangeHighlight.offsetTop],
@@ -1652,6 +1653,6 @@ goog.ui.SliderBase.AnimationFactory = function() {};
  * @param {number} previousValue The previous value (before animation).
  * @param {number} newValue The new value (after animation).
  * @param {number} interval The animation interval.
- * @return {!Array.<!goog.fx.TransitionBase>} The additional animations to play.
+ * @return {!Array<!goog.fx.TransitionBase>} The additional animations to play.
  */
 goog.ui.SliderBase.AnimationFactory.prototype.createAnimations;

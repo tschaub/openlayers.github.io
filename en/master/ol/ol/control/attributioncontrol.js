@@ -2,17 +2,18 @@
 
 goog.provide('ol.control.Attribution');
 
+goog.require('goog.asserts');
 goog.require('goog.dom');
-goog.require('goog.dom.TagName');
 goog.require('goog.dom.classlist');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('goog.object');
 goog.require('goog.style');
+goog.require('ol');
 goog.require('ol.Attribution');
 goog.require('ol.control.Control');
 goog.require('ol.css');
-goog.require('ol.pointer.PointerEventHandler');
+goog.require('ol.source.Tile');
 
 
 
@@ -30,81 +31,71 @@ goog.require('ol.pointer.PointerEventHandler');
  */
 ol.control.Attribution = function(opt_options) {
 
-  var options = goog.isDef(opt_options) ? opt_options : {};
+  var options = opt_options ? opt_options : {};
 
   /**
    * @private
    * @type {Element}
    */
-  this.ulElement_ = goog.dom.createElement(goog.dom.TagName.UL);
+  this.ulElement_ = goog.dom.createElement('UL');
 
   /**
    * @private
    * @type {Element}
    */
-  this.logoLi_ = goog.dom.createElement(goog.dom.TagName.LI);
+  this.logoLi_ = goog.dom.createElement('LI');
 
-  goog.dom.appendChild(this.ulElement_, this.logoLi_);
+  this.ulElement_.appendChild(this.logoLi_);
   goog.style.setElementShown(this.logoLi_, false);
 
   /**
    * @private
    * @type {boolean}
    */
-  this.collapsed_ = goog.isDef(options.collapsed) ? options.collapsed : true;
+  this.collapsed_ = options.collapsed !== undefined ? options.collapsed : true;
 
   /**
    * @private
    * @type {boolean}
    */
-  this.collapsible_ = goog.isDef(options.collapsible) ?
+  this.collapsible_ = options.collapsible !== undefined ?
       options.collapsible : true;
 
   if (!this.collapsible_) {
     this.collapsed_ = false;
   }
 
-  var className = goog.isDef(options.className) ?
-      options.className : 'ol-attribution';
+  var className = options.className ? options.className : 'ol-attribution';
 
-  var tipLabel = goog.isDef(options.tipLabel) ?
-      options.tipLabel : 'Attributions';
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
+  var tipLabel = options.tipLabel ? options.tipLabel : 'Attributions';
+
+  var collapseLabel = options.collapseLabel ? options.collapseLabel : '\u00BB';
 
   /**
    * @private
-   * @type {string}
+   * @type {Node}
    */
-  this.collapseLabel_ = goog.isDef(options.collapseLabel) ?
-      options.collapseLabel : '\u00BB';
+  this.collapseLabel_ = goog.isString(collapseLabel) ?
+      goog.dom.createDom('SPAN', {}, collapseLabel) :
+      collapseLabel;
+
+  var label = options.label ? options.label : 'i';
 
   /**
    * @private
-   * @type {string}
+   * @type {Node}
    */
-  this.label_ = goog.isDef(options.label) ? options.label : 'i';
-  var label = goog.dom.createDom(goog.dom.TagName.SPAN, {},
-      (this.collapsible_ && !this.collapsed_) ?
-      this.collapseLabel_ : this.label_);
+  this.label_ = goog.isString(label) ?
+      goog.dom.createDom('SPAN', {}, label) :
+      label;
 
+  var activeLabel = (this.collapsible_ && !this.collapsed_) ?
+      this.collapseLabel_ : this.label_;
+  var button = goog.dom.createDom('BUTTON', {
+    'type': 'button',
+    'title': tipLabel
+  }, activeLabel);
 
-  /**
-   * @private
-   * @type {Element}
-   */
-  this.labelSpan_ = label;
-  var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': 'ol-has-tooltip',
-    'type': 'button'
-  }, this.labelSpan_);
-  goog.dom.appendChild(button, tip);
-
-  var buttonHandler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(buttonHandler);
-  goog.events.listen(buttonHandler, ol.pointer.EventType.POINTERUP,
-      this.handlePointerUp_, false, this);
   goog.events.listen(button, goog.events.EventType.CLICK,
       this.handleClick_, false, this);
 
@@ -115,15 +106,18 @@ ol.control.Attribution = function(opt_options) {
     this.blur();
   }, false);
 
-  var element = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'class': className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
-        ol.css.CLASS_CONTROL +
-        (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
-        (this.collapsible_ ? '' : ' ol-uncollapsible')
-  }, this.ulElement_, button);
+  var cssClasses = className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
+      ol.css.CLASS_CONTROL +
+      (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
+      (this.collapsible_ ? '' : ' ol-uncollapsible');
+  var element = goog.dom.createDom('DIV',
+      cssClasses, this.ulElement_, button);
+
+  var render = options.render ? options.render : ol.control.Attribution.render;
 
   goog.base(this, {
     element: element,
+    render: render,
     target: options.target
   });
 
@@ -162,16 +156,22 @@ goog.inherits(ol.control.Attribution, ol.control.Control);
 ol.control.Attribution.prototype.getSourceAttributions = function(frameState) {
   var i, ii, j, jj, tileRanges, source, sourceAttribution,
       sourceAttributionKey, sourceAttributions, sourceKey;
+  var intersectsTileRange;
   var layerStatesArray = frameState.layerStatesArray;
   /** @type {Object.<string, ol.Attribution>} */
   var attributions = goog.object.clone(frameState.attributions);
   /** @type {Object.<string, ol.Attribution>} */
   var hiddenAttributions = {};
+  var projection = frameState.viewState.projection;
+  goog.asserts.assert(projection, 'projection of viewState required');
   for (i = 0, ii = layerStatesArray.length; i < ii; i++) {
     source = layerStatesArray[i].layer.getSource();
+    if (!source) {
+      continue;
+    }
     sourceKey = goog.getUid(source).toString();
     sourceAttributions = source.getAttributions();
-    if (goog.isNull(sourceAttributions)) {
+    if (!sourceAttributions) {
       continue;
     }
     for (j = 0, jj = sourceAttributions.length; j < jj; j++) {
@@ -181,14 +181,22 @@ ol.control.Attribution.prototype.getSourceAttributions = function(frameState) {
         continue;
       }
       tileRanges = frameState.usedTiles[sourceKey];
-      if (goog.isDef(tileRanges) &&
-          sourceAttribution.intersectsAnyTileRange(tileRanges)) {
+      if (tileRanges) {
+        goog.asserts.assertInstanceof(source, ol.source.Tile,
+            'source should be an ol.source.Tile');
+        var tileGrid = source.getTileGridForProjection(projection);
+        goog.asserts.assert(tileGrid, 'tileGrid required for projection');
+        intersectsTileRange = sourceAttribution.intersectsAnyTileRange(
+            tileRanges, tileGrid, projection);
+      } else {
+        intersectsTileRange = false;
+      }
+      if (intersectsTileRange) {
         if (sourceAttributionKey in hiddenAttributions) {
           delete hiddenAttributions[sourceAttributionKey];
         }
         attributions[sourceAttributionKey] = sourceAttribution;
-      }
-      else {
+      } else {
         hiddenAttributions[sourceAttributionKey] = sourceAttribution;
       }
     }
@@ -198,9 +206,12 @@ ol.control.Attribution.prototype.getSourceAttributions = function(frameState) {
 
 
 /**
- * @inheritDoc
+ * Update the attribution element.
+ * @param {ol.MapEvent} mapEvent Map event.
+ * @this {ol.control.Attribution}
+ * @api
  */
-ol.control.Attribution.prototype.handleMapPostrender = function(mapEvent) {
+ol.control.Attribution.render = function(mapEvent) {
   this.updateElement_(mapEvent.frameState);
 };
 
@@ -211,7 +222,7 @@ ol.control.Attribution.prototype.handleMapPostrender = function(mapEvent) {
  */
 ol.control.Attribution.prototype.updateElement_ = function(frameState) {
 
-  if (goog.isNull(frameState)) {
+  if (!frameState) {
     if (this.renderedVisible_) {
       goog.style.setElementShown(this.element, false);
       this.renderedVisible_ = false;
@@ -250,19 +261,19 @@ ol.control.Attribution.prototype.updateElement_ = function(frameState) {
     }
   }
   for (attributionKey in visibleAttributions) {
-    attributionElement = goog.dom.createElement(goog.dom.TagName.LI);
+    attributionElement = goog.dom.createElement('LI');
     attributionElement.innerHTML =
         visibleAttributions[attributionKey].getHTML();
-    goog.dom.appendChild(this.ulElement_, attributionElement);
+    this.ulElement_.appendChild(attributionElement);
     this.attributionElements_[attributionKey] = attributionElement;
     this.attributionElementRenderedVisible_[attributionKey] = true;
   }
   for (attributionKey in hiddenAttributions) {
-    attributionElement = goog.dom.createElement(goog.dom.TagName.LI);
+    attributionElement = goog.dom.createElement('LI');
     attributionElement.innerHTML =
         hiddenAttributions[attributionKey].getHTML();
     goog.style.setElementShown(attributionElement, false);
-    goog.dom.appendChild(this.ulElement_, attributionElement);
+    this.ulElement_.appendChild(attributionElement);
     this.attributionElements_[attributionKey] = attributionElement;
   }
 
@@ -311,13 +322,12 @@ ol.control.Attribution.prototype.insertLogos_ = function(frameState) {
       if (logoValue === '') {
         logoElement = image;
       } else {
-        logoElement = goog.dom.createDom(goog.dom.TagName.A, {
-          'href': logoValue,
-          'target': '_blank'
+        logoElement = goog.dom.createDom('A', {
+          'href': logoValue
         });
         logoElement.appendChild(image);
       }
-      goog.dom.appendChild(this.logoLi_, logoElement);
+      this.logoLi_.appendChild(logoElement);
       logoElements[logoKey] = logoElement;
     }
   }
@@ -332,19 +342,7 @@ ol.control.Attribution.prototype.insertLogos_ = function(frameState) {
  * @private
  */
 ol.control.Attribution.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.handleToggle_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.Attribution.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.handleToggle_();
 };
 
@@ -354,13 +352,17 @@ ol.control.Attribution.prototype.handlePointerUp_ = function(pointerEvent) {
  */
 ol.control.Attribution.prototype.handleToggle_ = function() {
   goog.dom.classlist.toggle(this.element, 'ol-collapsed');
-  goog.dom.setTextContent(this.labelSpan_,
-      (this.collapsed_) ? this.collapseLabel_ : this.label_);
+  if (this.collapsed_) {
+    goog.dom.replaceNode(this.collapseLabel_, this.label_);
+  } else {
+    goog.dom.replaceNode(this.label_, this.collapseLabel_);
+  }
   this.collapsed_ = !this.collapsed_;
 };
 
 
 /**
+ * Return `true` if the attribution is collapsible, `false` otherwise.
  * @return {boolean} True if the widget is collapsible.
  * @api stable
  */
@@ -370,6 +372,7 @@ ol.control.Attribution.prototype.getCollapsible = function() {
 
 
 /**
+ * Set whether the attribution should be collapsible.
  * @param {boolean} collapsible True if the widget is collapsible.
  * @api stable
  */
@@ -386,6 +389,9 @@ ol.control.Attribution.prototype.setCollapsible = function(collapsible) {
 
 
 /**
+ * Collapse or expand the attribution according to the passed parameter. Will
+ * not do anything if the attribution isn't collapsible or if the current
+ * collapsed state is already the one requested.
  * @param {boolean} collapsed True if the widget is collapsed.
  * @api stable
  */
@@ -398,6 +404,8 @@ ol.control.Attribution.prototype.setCollapsed = function(collapsed) {
 
 
 /**
+ * Return `true` when the attribution is currently collapsed or `false`
+ * otherwise.
  * @return {boolean} True if the widget is collapsed.
  * @api stable
  */

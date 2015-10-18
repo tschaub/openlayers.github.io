@@ -21,14 +21,13 @@
  * and input field show up.
  *
  * @author arv@google.com (Erik Arvidsson)
- * @author smcbride@google.com (Sean McBride)
- * @author manucornet@google.com (Manu Cornet)
  * @see ../demos/hsvpalette.html
  */
 
 goog.provide('goog.ui.HsvPalette');
 
 goog.require('goog.color');
+goog.require('goog.dom.InputType');
 goog.require('goog.dom.TagName');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
@@ -76,8 +75,16 @@ goog.tagUnsealableClass(goog.ui.HsvPalette);
 
 
 /**
+ * @desc Label for an input field where a user can enter a hexadecimal color
+ * specification, such as #ff0000 for red.
+ * @private
+ */
+goog.ui.HsvPalette.MSG_HSV_PALETTE_HEX_COLOR_ = goog.getMsg('Hex color');
+
+
+/**
  * DOM element representing the hue/saturation background image.
- * @type {Element}
+ * @type {HTMLElement}
  * @private
  */
 goog.ui.HsvPalette.prototype.hsImageEl_;
@@ -85,7 +92,7 @@ goog.ui.HsvPalette.prototype.hsImageEl_;
 
 /**
  * DOM element representing the hue/saturation handle.
- * @type {Element}
+ * @type {HTMLElement}
  * @private
  */
 goog.ui.HsvPalette.prototype.hsHandleEl_;
@@ -93,7 +100,7 @@ goog.ui.HsvPalette.prototype.hsHandleEl_;
 
 /**
  * DOM element representing the value background image.
- * @type {Element}
+ * @type {HTMLElement}
  * @protected
  */
 goog.ui.HsvPalette.prototype.valueBackgroundImageElement;
@@ -101,7 +108,7 @@ goog.ui.HsvPalette.prototype.valueBackgroundImageElement;
 
 /**
  * DOM element representing the value handle.
- * @type {Element}
+ * @type {HTMLElement}
  * @private
  */
 goog.ui.HsvPalette.prototype.vHandleEl_;
@@ -147,12 +154,23 @@ goog.ui.HsvPalette.prototype.mouseMoveListener;
 goog.ui.HsvPalette.prototype.mouseUpListener;
 
 
+/** @private {!goog.color.Hsv} */
+goog.ui.HsvPalette.prototype.hsv_;
+
+
+/**
+ * Hex representation of the color.
+ * @protected {string}
+ */
+goog.ui.HsvPalette.prototype.color;
+
+
 /**
  * Gets the color that is currently selected in this color picker.
  * @return {string} The string of the selected color.
  */
 goog.ui.HsvPalette.prototype.getColor = function() {
-  return this.color_;
+  return this.color;
 };
 
 
@@ -178,8 +196,8 @@ goog.ui.HsvPalette.prototype.updateInput = function() {
   } catch (e) {
     // ignore
   }
-  if (this.color_ != parsed) {
-    this.inputElement.value = this.color_;
+  if (this.color != parsed) {
+    this.inputElement.value = this.color;
   }
 };
 
@@ -189,7 +207,7 @@ goog.ui.HsvPalette.prototype.updateInput = function() {
  * @param {string} color The selected color.
  */
 goog.ui.HsvPalette.prototype.setColor = function(color) {
-  if (color != this.color_) {
+  if (color != this.color) {
     this.setColorInternal(color);
     this.updateUi();
     this.dispatchEvent(goog.ui.Component.EventType.ACTION);
@@ -210,7 +228,7 @@ goog.ui.HsvPalette.prototype.setColorInternal = function(color) {
   // incorrect.
   // TODO(user): Fix this, see http://1324469 .
   this.hsv_[0] = this.hsv_[0] / 360;
-  this.color_ = rgbHex;
+  this.color = rgbHex;
 };
 
 
@@ -248,7 +266,7 @@ goog.ui.HsvPalette.prototype.setHsv_ = function(opt_hue,
   // Hue is multiplied by 360 because the documentation for goog.color is
   // currently incorrect.
   // TODO(user): Fix this, see http://1324469 .
-  this.color_ = goog.color.hsvArrayToHex([
+  this.color = goog.color.hsvArrayToHex([
     this.hsv_[0] * 360,
     this.hsv_[1],
     this.hsv_[2]
@@ -277,30 +295,36 @@ goog.ui.HsvPalette.prototype.createDom = function() {
   var backdrop = dom.createDom(goog.dom.TagName.DIV,
       goog.getCssName(this.className, 'hs-backdrop'));
 
-  this.hsHandleEl_ = dom.createDom(goog.dom.TagName.DIV,
-      goog.getCssName(this.className, 'hs-handle'));
+  this.hsHandleEl_ = /** @type {!HTMLElement} */ (dom.createDom(
+      goog.dom.TagName.DIV,
+      goog.getCssName(this.className, 'hs-handle')));
 
-  this.hsImageEl_ = dom.createDom(goog.dom.TagName.DIV,
+  this.hsImageEl_ = /** @type {!HTMLElement} */ (dom.createDom(
+      goog.dom.TagName.DIV,
       goog.getCssName(this.className, 'hs-image'),
-      this.hsHandleEl_);
+      this.hsHandleEl_));
 
-  this.valueBackgroundImageElement = dom.createDom(
-      goog.dom.TagName.DIV,
-      goog.getCssName(this.className, 'v-image'));
+  this.valueBackgroundImageElement = /** @type {!HTMLElement} */ (
+      dom.createDom(
+          goog.dom.TagName.DIV,
+          goog.getCssName(this.className, 'v-image')));
 
-  this.vHandleEl_ = dom.createDom(
+  this.vHandleEl_ = /** @type {!HTMLElement} */ (dom.createDom(
       goog.dom.TagName.DIV,
-      goog.getCssName(this.className, 'v-handle'));
+      goog.getCssName(this.className, 'v-handle')));
 
   this.swatchElement = dom.createDom(goog.dom.TagName.DIV,
       goog.getCssName(this.className, 'swatch'));
 
-  this.inputElement = dom.createDom('input', {
+  this.inputElement = dom.createDom(goog.dom.TagName.INPUT, {
     'class': goog.getCssName(this.className, 'input'),
-    'type': 'text', 'dir': 'ltr'
+    'aria-label': goog.ui.HsvPalette.MSG_HSV_PALETTE_HEX_COLOR_,
+    'type': goog.dom.InputType.TEXT,
+    'dir': 'ltr'
   });
 
-  var labelElement = dom.createDom('label', null, this.inputElement);
+  var labelElement = dom.createDom(goog.dom.TagName.LABEL, null,
+                                   this.inputElement);
 
   var element = dom.createDom(goog.dom.TagName.DIV,
       this.className + noalpha,
@@ -404,7 +428,7 @@ goog.ui.HsvPalette.prototype.updateUi = function() {
     goog.style.setStyle(this.valueBackgroundImageElement, 'background-color',
         goog.color.hsvToHex(this.hsv_[0] * 360, this.hsv_[1], 255));
 
-    goog.style.setStyle(this.swatchElement, 'background-color', this.color_);
+    goog.style.setStyle(this.swatchElement, 'background-color', this.color);
     goog.style.setStyle(this.swatchElement, 'color',
                         (this.hsv_[2] > 255 / 2) ? '#000' : '#fff');
     this.updateInput();

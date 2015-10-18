@@ -46,3 +46,23 @@ function testBlobToString() {
       addCallback(goog.bind(asyncTestCase.continueTesting, asyncTestCase));
   asyncTestCase.waitForAsync('testBlobToString');
 }
+
+function testGetBlobWithProperties() {
+  assertEquals(
+      'data:spam/eggs;base64,Zm9vYmFy',
+      new goog.testing.fs.getBlobWithProperties(
+          ['foo', new goog.testing.fs.Blob('bar')], 'spam/eggs').toDataUrl());
+}
+
+function testSliceBlob() {
+  myBlob = new goog.testing.fs.Blob('0123456789');
+  actual = new goog.testing.fs.sliceBlob(myBlob, 1, 3);
+  expected = new goog.testing.fs.Blob('12');
+  assertEquals(expected.toString(), actual.toString());
+
+  myBlob = new goog.testing.fs.Blob('0123456789');
+  actual = new goog.testing.fs.sliceBlob(myBlob, 0, -1);
+  expected = new goog.testing.fs.Blob('012345678');
+  assertEquals(expected.toString(), actual.toString());
+
+}

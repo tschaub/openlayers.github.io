@@ -1,13 +1,12 @@
 goog.provide('ol.source.TileDebug');
 
 goog.require('ol.Tile');
-goog.require('ol.TileCache');
 goog.require('ol.TileCoord');
 goog.require('ol.TileState');
 goog.require('ol.dom');
+goog.require('ol.size');
 goog.require('ol.source.Tile');
 goog.require('ol.tilecoord');
-goog.require('ol.tilegrid.TileGrid');
 
 
 
@@ -15,18 +14,25 @@ goog.require('ol.tilegrid.TileGrid');
  * @constructor
  * @extends {ol.Tile}
  * @param {ol.TileCoord} tileCoord Tile coordinate.
- * @param {ol.tilegrid.TileGrid} tileGrid Tile grid.
+ * @param {ol.Size} tileSize Tile size.
+ * @param {string} text Text.
  * @private
  */
-ol.DebugTile_ = function(tileCoord, tileGrid) {
+ol.DebugTile_ = function(tileCoord, tileSize, text) {
 
   goog.base(this, tileCoord, ol.TileState.LOADED);
 
   /**
    * @private
-   * @type {number}
+   * @type {ol.Size}
    */
-  this.tileSize_ = tileGrid.getTileSize(tileCoord[0]);
+  this.tileSize_ = tileSize;
+
+  /**
+   * @private
+   * @type {string}
+   */
+  this.text_ = text;
 
   /**
    * @private
@@ -42,23 +48,22 @@ goog.inherits(ol.DebugTile_, ol.Tile);
  * @inheritDoc
  */
 ol.DebugTile_.prototype.getImage = function(opt_context) {
-  var key = goog.isDef(opt_context) ? goog.getUid(opt_context) : -1;
+  var key = opt_context !== undefined ? goog.getUid(opt_context) : -1;
   if (key in this.canvasByContext_) {
     return this.canvasByContext_[key];
   } else {
 
     var tileSize = this.tileSize_;
-    var context = ol.dom.createCanvasContext2D(tileSize, tileSize);
+    var context = ol.dom.createCanvasContext2D(tileSize[0], tileSize[1]);
 
     context.strokeStyle = 'black';
-    context.strokeRect(0.5, 0.5, tileSize + 0.5, tileSize + 0.5);
+    context.strokeRect(0.5, 0.5, tileSize[0] + 0.5, tileSize[1] + 0.5);
 
     context.fillStyle = 'black';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.font = '24px sans-serif';
-    context.fillText(ol.tilecoord.toString(this.tileCoord),
-        tileSize / 2, tileSize / 2);
+    context.fillText(this.text_, tileSize[0] / 2, tileSize[1] / 2);
 
     this.canvasByContext_[key] = context.canvas;
     return context.canvas;
@@ -86,14 +91,9 @@ ol.source.TileDebug = function(options) {
   goog.base(this, {
     opaque: false,
     projection: options.projection,
-    tileGrid: options.tileGrid
+    tileGrid: options.tileGrid,
+    wrapX: options.wrapX !== undefined ? options.wrapX : true
   });
-
-  /**
-   * @private
-   * @type {ol.TileCache}
-   */
-  this.tileCache_ = new ol.TileCache();
 
 };
 goog.inherits(ol.source.TileDebug, ol.source.Tile);
@@ -102,29 +102,18 @@ goog.inherits(ol.source.TileDebug, ol.source.Tile);
 /**
  * @inheritDoc
  */
-ol.source.TileDebug.prototype.canExpireCache = function() {
-  return this.tileCache_.canExpireCache();
-};
-
-
-/**
- * @inheritDoc
- */
-ol.source.TileDebug.prototype.expireCache = function(usedTiles) {
-  this.tileCache_.expireCache(usedTiles);
-};
-
-
-/**
- * @inheritDoc
- */
 ol.source.TileDebug.prototype.getTile = function(z, x, y) {
   var tileCoordKey = this.getKeyZXY(z, x, y);
-  if (this.tileCache_.containsKey(tileCoordKey)) {
-    return /** @type {!ol.DebugTile_} */ (this.tileCache_.get(tileCoordKey));
+  if (this.tileCache.containsKey(tileCoordKey)) {
+    return /** @type {!ol.DebugTile_} */ (this.tileCache.get(tileCoordKey));
   } else {
-    var tile = new ol.DebugTile_([z, x, y], this.tileGrid);
-    this.tileCache_.set(tileCoordKey, tile);
+    var tileSize = ol.size.toSize(this.tileGrid.getTileSize(z));
+    var tileCoord = [z, x, y];
+    var textTileCoord = this.getTileCoordForTileUrlFunction(tileCoord);
+    var text = !textTileCoord ? '' : ol.tilecoord.toString(
+        this.getTileCoordForTileUrlFunction(textTileCoord));
+    var tile = new ol.DebugTile_(tileCoord, tileSize, text);
+    this.tileCache.set(tileCoordKey, tile);
     return tile;
   }
 };

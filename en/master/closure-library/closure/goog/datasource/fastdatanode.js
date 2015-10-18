@@ -41,6 +41,7 @@ goog.provide('goog.ds.FastListNode');
 goog.provide('goog.ds.PrimitiveFastDataNode');
 
 goog.require('goog.ds.DataManager');
+goog.require('goog.ds.DataNodeList');
 goog.require('goog.ds.EmptyNodeList');
 goog.require('goog.string');
 
@@ -177,7 +178,7 @@ goog.ds.FastDataNode.emptyList_ = new goog.ds.EmptyNodeList();
  * @override
  */
 goog.ds.FastDataNode.prototype.set = function(value) {
-  throw 'Not implemented yet';
+  throw new Error('Not implemented yet');
 };
 
 
@@ -299,7 +300,7 @@ goog.ds.FastDataNode.prototype.getJsObject = function() {
  * @return {goog.ds.FastDataNode} Clone of this data node.
  */
 goog.ds.FastDataNode.prototype.clone = function() {
-  return /** @type {goog.ds.FastDataNode} */(goog.ds.FastDataNode.fromJs(
+  return /** @type {!goog.ds.FastDataNode} */(goog.ds.FastDataNode.fromJs(
       this.getJsObject(), this.getDataName()));
 };
 
@@ -508,7 +509,7 @@ goog.ds.PrimitiveFastDataNode.prototype.getJsObject = function() {
 
 /**
  * Creates a new list node from an array.
- * @param {Array} values values hold by this list node.
+ * @param {Array<?>} values values hold by this list node.
  * @param {string} dataName name of this node.
  * @param {goog.ds.DataNode=} opt_parent parent of this node.
  * @extends {goog.ds.AbstractFastDataNode}
@@ -630,7 +631,17 @@ goog.ds.FastListNode.prototype.setChildNode = function(key, value) {
       if (index < 0 || index >= this.values_.length) {
         throw Error('List index out of bounds: ' + index);
       }
-      this.values_[key] = value;
+      // NOTE: This code here appears to want to use "index" rather than
+      // "key" here (which would be better for an array. However, changing
+      // that would require knowing that there wasn't a mix of non-number
+      // keys, as using index that would risk overwriting those values if
+      // they were set first.  Instead we loosen the type so we can use
+      // strings as indexes.
+
+      /** @type {!Object} */
+      var values = this.values_;
+
+      values[key] = value;
     } else {
       if (!this.map_) {
         this.map_ = {};

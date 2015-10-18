@@ -1,6 +1,9 @@
 goog.provide('ol.source.ImageStatic');
 
+goog.require('goog.events');
+goog.require('goog.events.EventType');
 goog.require('ol.Image');
+goog.require('ol.ImageLoadFunctionType');
 goog.require('ol.extent');
 goog.require('ol.proj');
 goog.require('ol.source.Image');
@@ -9,8 +12,7 @@ goog.require('ol.source.Image');
 
 /**
  * @classdesc
- * An image source for 'static', that is, non-georeferenced, images.
- * See examples/static-image for example.
+ * A layer source for displaying a single, static image.
  *
  * @constructor
  * @extends {ol.source.Image}
@@ -19,29 +21,39 @@ goog.require('ol.source.Image');
  */
 ol.source.ImageStatic = function(options) {
 
-  var attributions = goog.isDef(options.attributions) ?
+  var attributions = options.attributions !== undefined ?
       options.attributions : null;
-  var crossOrigin = goog.isDef(options.crossOrigin) ?
-      options.crossOrigin : null;
+
   var imageExtent = options.imageExtent;
-  var imageSize = options.imageSize;
-  var imageResolution = (imageExtent[3] - imageExtent[1]) / imageSize[1];
-  var imageUrl = options.url;
-  var projection = ol.proj.get(options.projection);
+
+  var resolution, resolutions;
+  if (options.imageSize !== undefined) {
+    resolution = ol.extent.getHeight(imageExtent) / options.imageSize[1];
+    resolutions = [resolution];
+  }
+
+  var crossOrigin = options.crossOrigin !== undefined ?
+      options.crossOrigin : null;
+
+  var /** @type {ol.ImageLoadFunctionType} */ imageLoadFunction =
+      options.imageLoadFunction !== undefined ?
+      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
 
   goog.base(this, {
     attributions: attributions,
     logo: options.logo,
-    projection: projection,
-    resolutions: [imageResolution]
+    projection: ol.proj.get(options.projection),
+    resolutions: resolutions
   });
 
   /**
    * @private
    * @type {ol.Image}
    */
-  this.image_ = new ol.Image(imageExtent, imageResolution, 1, attributions,
-      imageUrl, crossOrigin);
+  this.image_ = new ol.Image(imageExtent, resolution, 1, attributions,
+      options.url, crossOrigin, imageLoadFunction);
+  goog.events.listen(this.image_, goog.events.EventType.CHANGE,
+      this.handleImageChange, false, this);
 
 };
 goog.inherits(ol.source.ImageStatic, ol.source.Image);
@@ -50,7 +62,7 @@ goog.inherits(ol.source.ImageStatic, ol.source.Image);
 /**
  * @inheritDoc
  */
-ol.source.ImageStatic.prototype.getImage =
+ol.source.ImageStatic.prototype.getImageInternal =
     function(extent, resolution, pixelRatio, projection) {
   if (ol.extent.intersects(extent, this.image_.getExtent())) {
     return this.image_;

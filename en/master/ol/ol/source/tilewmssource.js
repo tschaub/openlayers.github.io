@@ -4,7 +4,6 @@
 
 goog.provide('ol.source.TileWMS');
 
-goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.math');
 goog.require('goog.object');
@@ -15,6 +14,7 @@ goog.require('ol.TileCoord');
 goog.require('ol.TileUrlFunction');
 goog.require('ol.extent');
 goog.require('ol.proj');
+goog.require('ol.size');
 goog.require('ol.source.TileImage');
 goog.require('ol.source.wms');
 goog.require('ol.source.wms.ServerType');
@@ -33,9 +33,9 @@ goog.require('ol.tilecoord');
  */
 ol.source.TileWMS = function(opt_options) {
 
-  var options = goog.isDef(opt_options) ? opt_options : {};
+  var options = opt_options || {};
 
-  var params = goog.isDef(options.params) ? options.params : {};
+  var params = options.params !== undefined ? options.params : {};
 
   var transparent = goog.object.get(params, 'TRANSPARENT', true);
 
@@ -45,13 +45,15 @@ ol.source.TileWMS = function(opt_options) {
     logo: options.logo,
     opaque: !transparent,
     projection: options.projection,
+    reprojectionErrorThreshold: options.reprojectionErrorThreshold,
     tileGrid: options.tileGrid,
     tileLoadFunction: options.tileLoadFunction,
-    tileUrlFunction: goog.bind(this.tileUrlFunction_, this)
+    tileUrlFunction: goog.bind(this.tileUrlFunction_, this),
+    wrapX: options.wrapX !== undefined ? options.wrapX : true
   });
 
   var urls = options.urls;
-  if (!goog.isDef(urls) && goog.isDef(options.url)) {
+  if (urls === undefined && options.url !== undefined) {
     urls = ol.TileUrlFunction.expandUrl(options.url);
   }
 
@@ -59,13 +61,13 @@ ol.source.TileWMS = function(opt_options) {
    * @private
    * @type {!Array.<string>}
    */
-  this.urls_ = goog.isDefAndNotNull(urls) ? urls : [];
+  this.urls_ = urls || [];
 
   /**
    * @private
    * @type {number}
    */
-  this.gutter_ = goog.isDef(options.gutter) ? options.gutter : 0;
+  this.gutter_ = options.gutter !== undefined ? options.gutter : 0;
 
   /**
    * @private
@@ -90,7 +92,7 @@ ol.source.TileWMS = function(opt_options) {
    * @private
    * @type {boolean}
    */
-  this.hidpi_ = goog.isDef(options.hidpi) ? options.hidpi : true;
+  this.hidpi_ = options.hidpi !== undefined ? options.hidpi : true;
 
   /**
    * @private
@@ -128,12 +130,13 @@ goog.inherits(ol.source.TileWMS, ol.source.TileImage);
 ol.source.TileWMS.prototype.getGetFeatureInfoUrl =
     function(coordinate, resolution, projection, params) {
 
-  goog.asserts.assert(!('VERSION' in params));
+  goog.asserts.assert(!('VERSION' in params),
+      'key VERSION is not allowed in params');
 
   var projectionObj = ol.proj.get(projection);
 
   var tileGrid = this.getTileGrid();
-  if (goog.isNull(tileGrid)) {
+  if (!tileGrid) {
     tileGrid = this.getTileGridForProjection(projectionObj);
   }
 
@@ -146,11 +149,12 @@ ol.source.TileWMS.prototype.getGetFeatureInfoUrl =
 
   var tileResolution = tileGrid.getResolution(tileCoord[0]);
   var tileExtent = tileGrid.getTileCoordExtent(tileCoord, this.tmpExtent_);
-  var tileSize = tileGrid.getTileSize(tileCoord[0]);
+  var tileSize = ol.size.toSize(
+      tileGrid.getTileSize(tileCoord[0]), this.tmpSize);
 
   var gutter = this.gutter_;
   if (gutter !== 0) {
-    tileSize += 2 * gutter;
+    tileSize = ol.size.buffer(tileSize, gutter, this.tmpSize);
     tileExtent = ol.extent.buffer(tileExtent,
         tileResolution * gutter, tileExtent);
   }
@@ -161,15 +165,15 @@ ol.source.TileWMS.prototype.getGetFeatureInfoUrl =
     'REQUEST': 'GetFeatureInfo',
     'FORMAT': 'image/png',
     'TRANSPARENT': true,
-    'QUERY_LAYERS': goog.object.get(this.params_, 'LAYERS')
+    'QUERY_LAYERS': this.params_['LAYERS']
   };
   goog.object.extend(baseParams, this.params_, params);
 
   var x = Math.floor((coordinate[0] - tileExtent[0]) / tileResolution);
   var y = Math.floor((tileExtent[3] - coordinate[1]) / tileResolution);
 
-  goog.object.set(baseParams, this.v13_ ? 'I' : 'X', x);
-  goog.object.set(baseParams, this.v13_ ? 'J' : 'Y', y);
+  baseParams[this.v13_ ? 'I' : 'X'] = x;
+  baseParams[this.v13_ ? 'J' : 'Y'] = y;
 
   return this.getRequestUrl_(tileCoord, tileSize, tileExtent,
       1, projectionObj, baseParams);
@@ -205,7 +209,7 @@ ol.source.TileWMS.prototype.getParams = function() {
 
 /**
  * @param {ol.TileCoord} tileCoord Tile coordinate.
- * @param {number} tileSize Tile size.
+ * @param {ol.Size} tileSize Tile size.
  * @param {ol.Extent} tileExtent Tile extent.
  * @param {number} pixelRatio Pixel ratio.
  * @param {ol.proj.Projection} projection Projection.
@@ -218,18 +222,18 @@ ol.source.TileWMS.prototype.getRequestUrl_ =
         pixelRatio, projection, params) {
 
   var urls = this.urls_;
-  if (goog.array.isEmpty(urls)) {
+  if (urls.length === 0) {
     return undefined;
   }
 
-  goog.object.set(params, 'WIDTH', tileSize);
-  goog.object.set(params, 'HEIGHT', tileSize);
+  params['WIDTH'] = tileSize[0];
+  params['HEIGHT'] = tileSize[1];
 
   params[this.v13_ ? 'CRS' : 'SRS'] = projection.getCode();
 
   if (!('STYLES' in this.params_)) {
     /* jshint -W053 */
-    goog.object.set(params, 'STYLES', new String(''));
+    params['STYLES'] = new String('');
     /* jshint +W053 */
   }
 
@@ -237,17 +241,21 @@ ol.source.TileWMS.prototype.getRequestUrl_ =
     switch (this.serverType_) {
       case ol.source.wms.ServerType.GEOSERVER:
         var dpi = (90 * pixelRatio + 0.5) | 0;
-        goog.object.set(params, 'FORMAT_OPTIONS', 'dpi:' + dpi);
+        if ('FORMAT_OPTIONS' in params) {
+          params['FORMAT_OPTIONS'] += ';dpi:' + dpi;
+        } else {
+          params['FORMAT_OPTIONS'] = 'dpi:' + dpi;
+        }
         break;
       case ol.source.wms.ServerType.MAPSERVER:
-        goog.object.set(params, 'MAP_RESOLUTION', 90 * pixelRatio);
+        params['MAP_RESOLUTION'] = 90 * pixelRatio;
         break;
       case ol.source.wms.ServerType.CARMENTA_SERVER:
       case ol.source.wms.ServerType.QGIS:
-        goog.object.set(params, 'DPI', 90 * pixelRatio);
+        params['DPI'] = 90 * pixelRatio;
         break;
       default:
-        goog.asserts.fail();
+        goog.asserts.fail('unknown serverType configured');
         break;
     }
   }
@@ -263,7 +271,7 @@ ol.source.TileWMS.prototype.getRequestUrl_ =
     bbox[2] = tileExtent[3];
     bbox[3] = tmp;
   }
-  goog.object.set(params, 'BBOX', bbox.join(','));
+  params['BBOX'] = bbox.join(',');
 
   var url;
   if (urls.length == 1) {
@@ -280,21 +288,21 @@ ol.source.TileWMS.prototype.getRequestUrl_ =
  * @param {number} z Z.
  * @param {number} pixelRatio Pixel ratio.
  * @param {ol.proj.Projection} projection Projection.
- * @return {number} Size.
+ * @return {ol.Size} Size.
  */
 ol.source.TileWMS.prototype.getTilePixelSize =
     function(z, pixelRatio, projection) {
   var tileSize = goog.base(this, 'getTilePixelSize', z, pixelRatio, projection);
-  if (pixelRatio == 1 || !this.hidpi_ || !goog.isDef(this.serverType_)) {
+  if (pixelRatio == 1 || !this.hidpi_ || this.serverType_ === undefined) {
     return tileSize;
   } else {
-    return (tileSize * pixelRatio + 0.5) | 0;
+    return ol.size.scale(tileSize, pixelRatio, this.tmpSize);
   }
 };
 
 
 /**
- * Return the URLs used for this WMS source.
+ * Return the URLs used for this WMS source.
  * @return {!Array.<string>} URLs.
  * @api stable
  */
@@ -325,23 +333,25 @@ ol.source.TileWMS.prototype.resetCoordKeyPrefix_ = function() {
 
 
 /**
+ * Set the URL to use for requests.
  * @param {string|undefined} url URL.
  * @api stable
  */
 ol.source.TileWMS.prototype.setUrl = function(url) {
-  var urls = goog.isDef(url) ? ol.TileUrlFunction.expandUrl(url) : null;
+  var urls = url !== undefined ? ol.TileUrlFunction.expandUrl(url) : null;
   this.setUrls(urls);
 };
 
 
 /**
+ * Set the URLs to use for requests.
  * @param {Array.<string>|undefined} urls URLs.
  * @api stable
  */
 ol.source.TileWMS.prototype.setUrls = function(urls) {
-  this.urls_ = goog.isDefAndNotNull(urls) ? urls : [];
+  this.urls_ = urls || [];
   this.resetCoordKeyPrefix_();
-  this.dispatchChangeEvent();
+  this.changed();
 };
 
 
@@ -356,7 +366,7 @@ ol.source.TileWMS.prototype.tileUrlFunction_ =
     function(tileCoord, pixelRatio, projection) {
 
   var tileGrid = this.getTileGrid();
-  if (goog.isNull(tileGrid)) {
+  if (!tileGrid) {
     tileGrid = this.getTileGridForProjection(projection);
   }
 
@@ -364,24 +374,24 @@ ol.source.TileWMS.prototype.tileUrlFunction_ =
     return undefined;
   }
 
-  if (pixelRatio != 1 && (!this.hidpi_ || !goog.isDef(this.serverType_))) {
+  if (pixelRatio != 1 && (!this.hidpi_ || this.serverType_ === undefined)) {
     pixelRatio = 1;
   }
 
   var tileResolution = tileGrid.getResolution(tileCoord[0]);
-  var tileExtent = tileGrid.getTileCoordExtent(
-      tileCoord, this.tmpExtent_);
-  var tileSize = tileGrid.getTileSize(tileCoord[0]);
+  var tileExtent = tileGrid.getTileCoordExtent(tileCoord, this.tmpExtent_);
+  var tileSize = ol.size.toSize(
+      tileGrid.getTileSize(tileCoord[0]), this.tmpSize);
 
   var gutter = this.gutter_;
   if (gutter !== 0) {
-    tileSize += 2 * gutter;
+    tileSize = ol.size.buffer(tileSize, gutter, this.tmpSize);
     tileExtent = ol.extent.buffer(tileExtent,
         tileResolution * gutter, tileExtent);
   }
 
   if (pixelRatio != 1) {
-    tileSize = (tileSize * pixelRatio + 0.5) | 0;
+    tileSize = ol.size.scale(tileSize, pixelRatio, this.tmpSize);
   }
 
   var baseParams = {
@@ -407,7 +417,7 @@ ol.source.TileWMS.prototype.updateParams = function(params) {
   goog.object.extend(this.params_, params);
   this.resetCoordKeyPrefix_();
   this.updateV13_();
-  this.dispatchChangeEvent();
+  this.changed();
 };
 
 

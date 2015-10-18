@@ -1,6 +1,5 @@
 goog.provide('ol.ImageTile');
 
-goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
@@ -38,7 +37,7 @@ ol.ImageTile = function(tileCoord, state, src, crossOrigin, tileLoadFunction) {
    * @type {Image}
    */
   this.image_ = new Image();
-  if (!goog.isNull(crossOrigin)) {
+  if (crossOrigin) {
     this.image_.crossOrigin = crossOrigin;
   }
 
@@ -50,7 +49,7 @@ ol.ImageTile = function(tileCoord, state, src, crossOrigin, tileLoadFunction) {
 
   /**
    * @private
-   * @type {Array.<number>}
+   * @type {Array.<goog.events.Key>}
    */
   this.imageListenerKeys_ = null;
 
@@ -66,10 +65,22 @@ goog.inherits(ol.ImageTile, ol.Tile);
 
 /**
  * @inheritDoc
+ */
+ol.ImageTile.prototype.disposeInternal = function() {
+  if (this.state == ol.TileState.LOADING) {
+    this.unlistenImage_();
+  }
+  goog.base(this, 'disposeInternal');
+};
+
+
+/**
+ * Get the image element for this tile.
+ * @inheritDoc
  * @api
  */
 ol.ImageTile.prototype.getImage = function(opt_context) {
-  if (goog.isDef(opt_context)) {
+  if (opt_context !== undefined) {
     var image;
     var key = goog.getUid(opt_context);
     if (key in this.imageByContext_) {
@@ -103,7 +114,7 @@ ol.ImageTile.prototype.getKey = function() {
 ol.ImageTile.prototype.handleImageError_ = function() {
   this.state = ol.TileState.ERROR;
   this.unlistenImage_();
-  this.dispatchChangeEvent();
+  this.changed();
 };
 
 
@@ -113,18 +124,13 @@ ol.ImageTile.prototype.handleImageError_ = function() {
  * @private
  */
 ol.ImageTile.prototype.handleImageLoad_ = function() {
-  if (!goog.isDef(this.image_.naturalWidth)) {
-    this.image_.naturalWidth = this.image_.width;
-    this.image_.naturalHeight = this.image_.height;
-  }
-
   if (this.image_.naturalWidth && this.image_.naturalHeight) {
     this.state = ol.TileState.LOADED;
   } else {
     this.state = ol.TileState.EMPTY;
   }
   this.unlistenImage_();
-  this.dispatchChangeEvent();
+  this.changed();
 };
 
 
@@ -134,7 +140,9 @@ ol.ImageTile.prototype.handleImageLoad_ = function() {
 ol.ImageTile.prototype.load = function() {
   if (this.state == ol.TileState.IDLE) {
     this.state = ol.TileState.LOADING;
-    goog.asserts.assert(goog.isNull(this.imageListenerKeys_));
+    this.changed();
+    goog.asserts.assert(!this.imageListenerKeys_,
+        'this.imageListenerKeys_ should be null');
     this.imageListenerKeys_ = [
       goog.events.listenOnce(this.image_, goog.events.EventType.ERROR,
           this.handleImageError_, false, this),
@@ -152,7 +160,8 @@ ol.ImageTile.prototype.load = function() {
  * @private
  */
 ol.ImageTile.prototype.unlistenImage_ = function() {
-  goog.asserts.assert(!goog.isNull(this.imageListenerKeys_));
-  goog.array.forEach(this.imageListenerKeys_, goog.events.unlistenByKey);
+  goog.asserts.assert(this.imageListenerKeys_,
+      'this.imageListenerKeys_ should not be null');
+  this.imageListenerKeys_.forEach(goog.events.unlistenByKey);
   this.imageListenerKeys_ = null;
 };
